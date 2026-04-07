@@ -17,7 +17,7 @@
 
   font: 18px/145% var(--sans);
   letter-spacing: 0.18px;
-  color-scheme: light dark;
+  color-scheme: light;
   color: var(--text);
   background: var(--bg);
   font-synthesis: none;
@@ -47,6 +47,27 @@
 
   #social .button-icon {
     filter: invert(1) brightness(2);
+  }
+}
+
+/* Force light theme for now, while preserving dark theme styles above for later use. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #6b6375;
+    --text-h: #08060d;
+    --bg: #fff;
+    --border: #e5e4e7;
+    --code-bg: #f4f3ec;
+    --accent: #aa3bff;
+    --accent-bg: rgba(170, 59, 255, 0.1);
+    --accent-border: rgba(170, 59, 255, 0.5);
+    --social-bg: rgba(244, 243, 236, 0.5);
+    --shadow:
+      rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  }
+
+  #social .button-icon {
+    filter: none;
   }
 }
 
@@ -169,6 +190,12 @@ code {
   @media (max-width: 1024px) {
     padding: 0 16px;
   }
+}
+
+.chart-section + .chart-section {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
 }
 
 #center {
