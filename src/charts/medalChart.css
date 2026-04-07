@@ -1,0 +1,227 @@
+/* ── Chart container ─────────────────────────────────────────────────── */
+#medal-chart-section {
+  width: 100%;
+  height: 100dvh;
+  padding: 24px 0 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+#medal-chart-section h1 {
+  font-size: 1.75rem;
+  letter-spacing: -0.5px;
+  text-align: center;
+  margin: 0 0 4px;
+  color: var(--text-h);
+}
+
+#medal-chart-section .chart-subtitle {
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--text);
+  margin-bottom: 0;
+}
+
+#medal-chart-wrapper {
+  width: 100%;
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+/* ── Bars ────────────────────────────────────────────────────────────── */
+.bar {
+  transition: filter 0.2s ease;
+  cursor: pointer;
+}
+
+/* ── Flag images ─────────────────────────────────────────────────────── */
+.country-flag {
+  border-radius: 2px;
+  /* SVG <image> doesn't support box-shadow, but we can fake via filter */
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.18));
+}
+
+.bar-gold {
+  fill: #FFD700;
+}
+.bar-silver {
+  fill: #C0C0C0;
+}
+.bar-bronze {
+  fill: #CD7F32;
+}
+
+/* ── Labels ──────────────────────────────────────────────────────────── */
+.country-label {
+  font-size: 13px;
+  fill: var(--text-h, #1a1a2e);
+  font-family: inherit;
+  font-weight: 500;
+}
+
+.bar-value {
+  font-size: 11px;
+  font-weight: 700;
+  fill: rgba(0, 0, 0, 0.65);
+  font-family: inherit;
+  pointer-events: none;
+}
+
+.total-label {
+  font-size: 12px;
+  font-weight: 600;
+  fill: var(--text-h, #1a1a2e);
+  font-family: inherit;
+}
+
+/* ── Axes ────────────────────────────────────────────────────────────── */
+.axis text {
+  font-size: 12px;
+  fill: var(--text, #6b6375);
+  font-family: inherit;
+}
+
+.axis .tick line {
+  stroke: var(--border, #e5e4e7);
+}
+
+/* ── Axis labels ─────────────────────────────────────────────────────── */
+.axis-label {
+  font-size: 14px;
+  font-weight: 600;
+  fill: var(--text, #6b6375);
+  font-family: inherit;
+  letter-spacing: 0.3px;
+}
+
+/* ── Grid ────────────────────────────────────────────────────────────── */
+.grid .tick line {
+  stroke: var(--border, #e5e4e7);
+  stroke-dasharray: 4 3;
+  stroke-width: 1;
+}
+
+/* ── Legend ──────────────────────────────────────────────────────────── */
+.legend-label {
+  font-size: 13px;
+  fill: var(--text-h, #1a1a2e);
+  font-family: inherit;
+  font-weight: 500;
+}
+
+/* ── Tooltip ─────────────────────────────────────────────────────────── */
+#medal-tooltip {
+  position: fixed;
+  display: none;
+  background: var(--bg, #fff);
+  border: 1px solid var(--border, #e5e4e7);
+  border-radius: 10px;
+  padding: 12px 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.13);
+  pointer-events: none;
+  z-index: 999;
+  min-width: 170px;
+  font-family: inherit;
+}
+
+.tt-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.tt-flag {
+  width: 32px;
+  height: 22px;
+  object-fit: cover;
+  border-radius: 3px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.18);
+  flex-shrink: 0;
+}
+
+.tt-country {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text-h, #1a1a2e);
+  line-height: 1.2;
+}
+
+.tt-code {
+  font-size: 11px;
+  color: var(--text, #6b6375);
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.tt-divider {
+  height: 1px;
+  background: var(--border, #e5e4e7);
+  margin-bottom: 8px;
+}
+
+.tt-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text, #6b6375);
+  margin-bottom: 6px;
+}
+
+.tt-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+.tt-medal {
+  flex: 1;
+}
+
+.tt-val {
+  font-weight: 700;
+  color: var(--text-h, #1a1a2e);
+}
+
+.tt-all-medals {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  color: var(--text-h, #1a1a2e);
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.tt-total {
+  font-size: 12px;
+  color: var(--text, #6b6375);
+  border-top: 1px solid var(--border, #e5e4e7);
+  padding-top: 6px;
+}
+
+/* ── Dark mode overrides ─────────────────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  .bar-value {
+    fill: rgba(255, 255, 255, 0.75);
+  }
+
+  .country-label,
+  .total-label,
+  .legend-label {
+    fill: var(--text-h, #f3f4f6);
+  }
+
+  .axis text {
+    fill: var(--text, #9ca3af);
+  }
+
+  .grid .tick line,
+  .axis .tick line {
+    stroke: var(--border, #2e303a);
+  }
+}
