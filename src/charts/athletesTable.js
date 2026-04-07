@@ -92,7 +92,7 @@ function formatAthleteDisplayName (rawName) {
   const surname = toNameCase(tokens.slice(0, firstNameStart).join(' '))
   const firstName = toNameCase(tokens.slice(firstNameStart).join(' '))
 
-  return firstName ? `${surname}, ${firstName}` : surname
+  return firstName ? `${firstName} ${surname}` : surname
 }
 
 export async function loadAthletesTableMedalsData () {
@@ -333,12 +333,17 @@ export class AthletesTable {
   }
 
   applySort (rows) {
+    const getSortValue = (row, key) => {
+      if (key === 'athlete_name') return row.athlete_display_name
+      return row[key]
+    }
+
     if (!this.sortState) {
       return rows.sort((a, b) =>
         b.total_medals_all_games - a.total_medals_all_games ||
         b.medals_on_selected_day - a.medals_on_selected_day ||
         b.gold_total - a.gold_total ||
-        a.athlete_name.localeCompare(b.athlete_name, 'fr')
+        a.athlete_display_name.localeCompare(b.athlete_display_name, 'fr')
       )
     }
 
@@ -348,10 +353,10 @@ export class AthletesTable {
 
     return rows.sort((a, b) => {
       if (!column || column.type === 'text') {
-        const textCompare = String(a[key]).localeCompare(String(b[key]), 'fr')
+        const textCompare = String(getSortValue(a, key)).localeCompare(String(getSortValue(b, key)), 'fr')
         if (textCompare !== 0) return textCompare * multiplier
       } else {
-        const numericCompare = (Number(a[key]) - Number(b[key]))
+        const numericCompare = (Number(getSortValue(a, key)) - Number(getSortValue(b, key)))
         if (numericCompare !== 0) return numericCompare * multiplier
       }
 
@@ -359,7 +364,7 @@ export class AthletesTable {
         b.total_medals_all_games - a.total_medals_all_games ||
         b.medals_on_selected_day - a.medals_on_selected_day ||
         b.gold_total - a.gold_total ||
-        a.athlete_name.localeCompare(b.athlete_name, 'fr')
+        a.athlete_display_name.localeCompare(b.athlete_display_name, 'fr')
       )
     })
   }
