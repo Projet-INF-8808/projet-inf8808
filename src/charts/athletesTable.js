@@ -68,6 +68,33 @@ function formatDayMedalDetails (row) {
   return `${row.medals_on_selected_day} (${parts.join(', ')})`
 }
 
+function toNameCase (segment) {
+  return segment
+    .split(/([\-\s'’])/)
+    .map(part => {
+      if (/^[\-\s'’]$/.test(part) || part === '') return part
+      const lower = part.toLocaleLowerCase('fr')
+      return lower.charAt(0).toLocaleUpperCase('fr') + lower.slice(1)
+    })
+    .join('')
+}
+
+function formatAthleteDisplayName (rawName) {
+  const tokens = (rawName ?? '').trim().split(/\s+/).filter(Boolean)
+  if (tokens.length <= 1) return toNameCase(rawName ?? '')
+
+  const upperToken = /^[A-ZÀ-ÖØ-Þ'’-]+$/
+  let firstNameStart = tokens.findIndex(token => !upperToken.test(token))
+  if (firstNameStart <= 0) {
+    firstNameStart = 1
+  }
+
+  const surname = toNameCase(tokens.slice(0, firstNameStart).join(' '))
+  const firstName = toNameCase(tokens.slice(firstNameStart).join(' '))
+
+  return firstName ? `${surname}, ${firstName}` : surname
+}
+
 export async function loadAthletesTableMedalsData () {
   const [rows, countries] = await Promise.all([
     d3.csv('/src/assets/data/medals.csv', d => ({
@@ -110,7 +137,7 @@ export function initAthletesTable (sectionSelector, rawData) {
   if (!section) return null
 
   section.innerHTML = `
-    <h1 class="athletes-table-title">Athletes avec plusieurs medailles</h1>
+    <h1 class="athletes-table-title">Athletes avec plusieurs médailles</h1>
     <div class="athletes-table-controls" id="athletes-table-controls"></div>
     <div id="athletes-table-root"></div>
   `
@@ -144,7 +171,14 @@ export function initAthletesTable (sectionSelector, rawData) {
     `
   }).join('')
 
+  controlsContainer.insertAdjacentHTML('beforeend', `
+    <div class="athletes-table-actions">
+      <button type="button" class="athletes-table-reset" id="athletes-table-reset">Reinitialiser filtres et tri</button>
+    </div>
+  `)
+
   const athletesTable = new AthletesTable('#athletes-table-root', rawData, filters)
+  const defaultFilters = { ...filters }
 
   const dateSelect = section.querySelector('#athletes-table-filter-date')
 
@@ -199,6 +233,23 @@ export function initAthletesTable (sectionSelector, rawData) {
     })
   })
 
+  const resetButton = section.querySelector('#athletes-table-reset')
+  if (resetButton) {
+    resetButton.addEventListener('click', () => {
+      filters.country = defaultFilters.country
+      filters.sex = defaultFilters.sex
+      filters.discipline = defaultFilters.discipline
+      filters.date = defaultFilters.date
+
+      section.querySelector('#athletes-table-filter-country').value = filters.country
+      section.querySelector('#athletes-table-filter-sex').value = filters.sex
+      section.querySelector('#athletes-table-filter-discipline').value = filters.discipline
+
+      refreshDateOptions()
+      athletesTable.resetSort()
+    })
+  }
+
   return athletesTable
 }
 
@@ -213,6 +264,18 @@ export class AthletesTable {
       discipline: TOUS,
       ...initialFilters
     }
+
+    this.columns = [
+      { key: 'athlete_name', label: 'Athlete', type: 'text', sortable: true },
+      { key: 'country', label: 'Pays', type: 'text', sortable: true },
+      { key: 'athlete_sex', label: 'Sexe', type: 'text', sortable: true },
+      { key: 'medals_on_selected_day', label: 'Médailles (jour)', type: 'number', sortable: false },
+      { key: 'total_medals_all_games', label: 'Total médailles', type: 'number', sortable: true },
+      { key: 'gold_total', label: 'Or', type: 'number', sortable: true },
+      { key: 'silver_total', label: 'Argent', type: 'number', sortable: true },
+      { key: 'bronze_total', label: 'Bronze', type: 'number', sortable: true }
+    ]
+    this.sortState = null
 
     this.allTimeByAthlete = this.computeAllTimeTotals(rawData)
     this.renderShell()
@@ -248,6 +311,65 @@ export class AthletesTable {
     this.render()
   }
 
+  toggleSort (columnKey) {
+    const column = this.columns.find(col => col.key === columnKey)
+    if (!column || column.sortable === false) return
+
+    if (!this.sortState || this.sortState.key !== columnKey) {
+      this.sortState = { key: columnKey, direction: 'asc' }
+    } else {
+      this.sortState = {
+        key: columnKey,
+        direction: this.sortState.direction === 'asc' ? 'desc' : 'asc'
+      }
+    }
+
+    this.render()
+  }
+
+  resetSort () {
+    this.sortState = null
+    this.render()
+  }
+
+  applySort (rows) {
+    if (!this.sortState) {
+      return rows.sort((a, b) =>
+        b.total_medals_all_games - a.total_medals_all_games ||
+        b.medals_on_selected_day - a.medals_on_selected_day ||
+        b.gold_total - a.gold_total ||
+        a.athlete_name.localeCompare(b.athlete_name, 'fr')
+      )
+    }
+
+    const { key, direction } = this.sortState
+    const column = this.columns.find(col => col.key === key)
+    const multiplier = direction === 'asc' ? 1 : -1
+
+    return rows.sort((a, b) => {
+      if (!column || column.type === 'text') {
+        const textCompare = String(a[key]).localeCompare(String(b[key]), 'fr')
+        if (textCompare !== 0) return textCompare * multiplier
+      } else {
+        const numericCompare = (Number(a[key]) - Number(b[key]))
+        if (numericCompare !== 0) return numericCompare * multiplier
+      }
+
+      return (
+        b.total_medals_all_games - a.total_medals_all_games ||
+        b.medals_on_selected_day - a.medals_on_selected_day ||
+        b.gold_total - a.gold_total ||
+        a.athlete_name.localeCompare(b.athlete_name, 'fr')
+      )
+    })
+  }
+
+  updateSortIndicators () {
+    this.root.selectAll('thead th')
+      .classed('is-sorted-asc', d => this.sortState?.key === d.key && this.sortState.direction === 'asc')
+      .classed('is-sorted-desc', d => this.sortState?.key === d.key && this.sortState.direction === 'desc')
+  }
+
   buildRows () {
     const { date, country, sex, discipline } = this.filters
 
@@ -268,6 +390,7 @@ export class AthletesTable {
       if (!byAthlete.has(row.athlete_name)) {
         byAthlete.set(row.athlete_name, {
           athlete_name: row.athlete_name,
+          athlete_display_name: formatAthleteDisplayName(row.athlete_name),
           country: row.country,
           athlete_sex: row.athlete_sex,
           medals_on_selected_day: 0,
@@ -288,12 +411,7 @@ export class AthletesTable {
       athleteRow.day_medal_counts[row.medal_type] += 1
     })
 
-    return Array.from(byAthlete.values()).sort((a, b) =>
-      b.total_medals_all_games - a.total_medals_all_games ||
-      b.medals_on_selected_day - a.medals_on_selected_day ||
-      b.gold_total - a.gold_total ||
-      a.athlete_name.localeCompare(b.athlete_name)
-    )
+    return this.applySort(Array.from(byAthlete.values()))
   }
 
   renderShell () {
@@ -308,19 +426,12 @@ export class AthletesTable {
     table.append('thead')
       .append('tr')
       .selectAll('th')
-      .data([
-        'Athlete',
-        'Pays',
-        'Sexe',
-        'Medailles (jour)',
-        'Total medailles',
-        'Or',
-        'Argent',
-        'Bronze'
-      ])
+      .data(this.columns)
       .join('th')
       .attr('scope', 'col')
-      .text(d => d)
+      .attr('class', d => (d.sortable === false ? '' : 'is-sortable'))
+      .on('click', (_, d) => this.toggleSort(d.key))
+      .text(d => d.label)
 
     table.append('tbody')
   }
@@ -334,10 +445,11 @@ export class AthletesTable {
 
     if (multiMedalAthletes > 0) {
       const multiAthleteLabel = multiMedalAthletes > 1 ? 'athletes' : 'athlete'
-      summaryText += ` | ${multiMedalAthletes} ${multiAthleteLabel} avec plus d'une medaille au total`
+      summaryText += ` | ${multiMedalAthletes} ${multiAthleteLabel} avec plus d'une médaille au total`
     }
 
     this.root.select('.athletes-table-summary').text(summaryText)
+    this.updateSortIndicators()
 
     const tableRows = this.root.select('tbody')
       .selectAll('tr')
@@ -347,7 +459,7 @@ export class AthletesTable {
     const cells = tableRows
       .selectAll('td')
       .data(d => [
-        d.athlete_name,
+        d.athlete_display_name,
         d.country,
         d.athlete_sex,
         formatDayMedalDetails(d),
