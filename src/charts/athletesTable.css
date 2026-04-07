@@ -1,0 +1,132 @@
+#athletes-table-section {
+  width: 100%;
+  padding: 24px 0 32px;
+  box-sizing: border-box;
+}
+
+.athletes-table-controls {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(140px, 1fr));
+  gap: 10px;
+  margin: 0 0 14px;
+}
+
+.athletes-table-control {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.athletes-table-control label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.athletes-table-control select {
+  border: 1px solid #bcc4ce;
+  border-radius: 4px;
+  padding: 6px 8px;
+  font-size: 13px;
+  color: #0f172a;
+  background: #ffffff;
+}
+
+.athletes-table-title {
+  font-size: 1.75rem;
+  letter-spacing: -0.5px;
+  text-align: center;
+  margin: 0 0 4px;
+  color: var(--text-h);
+  margin-bottom: 25px;
+}
+
+.athletes-table-summary {
+  margin: 0 0 10px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.athletes-table-wrapper {
+  border: 1px solid #c6ced9;
+  border-radius: 6px;
+  background: #ffffff;
+  overflow: auto;
+}
+
+.athletes-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 760px;
+  font-size: 13px;
+}
+
+.athletes-table thead th {
+  background: #34475c;
+  color: #ffffff;
+  border: 1px solid #27384a;
+  text-align: left;
+  padding: 8px 10px;
+}
+
+.athletes-table tbody tr:nth-child(odd) {
+  background: #ffffff;
+}
+
+.athletes-table tbody tr:nth-child(even) {
+  background: #f6f8fb;
+}
+
+.athletes-table tbody td {
+  border: 1px solid #e0e5ec;
+  padding: 7px 10px;
+  color: #0f172a;
+}
+
+.athletes-table-value-cell {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.athletes-table td.athletes-table-col-3 {
+  text-align: left;
+}
+
+.athletes-table-total-medals {
+  font-weight: 700;
+  background: #eaf0ff;
+}
+
+.athletes-table-total-medals-light {
+  background: #dce7ff;
+}
+
+.athletes-table-total-medals-strong {
+  background: #c6d8ff;
+  color: #0d235a;
+}
+
+.athletes-table-gold-cell {
+  background: #fff3c7;
+}
+
+.athletes-table-silver-cell {
+  background: #e8eef5;
+}
+
+.athletes-table-bronze-cell {
+  background: #f2e1d2;
+}
+
+@media (max-width: 920px) {
+  .athletes-table-controls {
+    grid-template-columns: repeat(2, minmax(130px, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .athletes-table-controls {
+    grid-template-columns: 1fr;
+  }
+}
