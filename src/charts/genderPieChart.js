@@ -5,26 +5,38 @@ const ASSET_BASE = `${import.meta.env.BASE_URL}assets`
 let rawGenderCache = null
 
 export async function loadGenderData () {
-  rawGenderCache = await d3.csv(`${ASSET_BASE}/data/medals.csv`)
+  const rawData = await d3.csv(`${ASSET_BASE}/data/medals.csv`)
+  
+  const seen = new Set()
+  rawGenderCache = rawData.filter(d => {
+    const key = `${d.country_code.trim()}||${d.event.trim()}||${d.medal_type.trim()}`
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+
   return computeGenderData(null)
 }
 
-export function computeGenderData (dateStr) {
+export function computeGenderData (dateStr, countryFilter) {
   if (!rawGenderCache) return []
   
   let data = rawGenderCache
   if (dateStr) {
     data = data.filter(d => d.medal_date.trim().slice(0, 10) === dateStr)
   }
+  if (countryFilter) {
+    data = data.filter(d => d.country_code.trim() === countryFilter)
+  }
   
   const roll = d3.rollup(data, v => v.length, d => d.athlete_sex.trim())
   const total = data.length || 1
   
   return [
-    { key: 'M', label: 'Male', count: roll.get('M') || 0, color: '#82C6C0' },
-    { key: 'W', label: 'Female', count: roll.get('W') || 0, color: '#2B4450' },
-    { key: 'X', label: 'Mixed', count: roll.get('X') || 0, color: '#E3C273' },
-    { key: 'O', label: 'Other', count: roll.get('O') || 0, color: '#F6A266' }
+    { key: 'M', label: 'Hommes', count: roll.get('M') || 0, color: '#82C6C0' },
+    { key: 'W', label: 'Femmes', count: roll.get('W') || 0, color: '#2B4450' },
+    { key: 'X', label: 'Mixte', count: roll.get('X') || 0, color: '#E3C273' },
+    { key: 'O', label: 'Autre', count: roll.get('O') || 0, color: '#F6A266' }
   ].filter(d => d.count > 0).map(d => ({
     ...d,
     percent: (d.count / total * 100).toFixed(1)

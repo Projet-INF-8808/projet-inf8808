@@ -18,9 +18,12 @@ let athletesTableController = null
 let dailyControls = null
 let dailyDateIndex = new Map()
 let countryDailyChartControls = null
+let globalCountryFilter = null
+let globalSelectedDateStr = null
 
 function syncSelectedDate (dateStr, source) {
   if (!dateStr) return
+  globalSelectedDateStr = dateStr
 
   if (athletesTableController?.setExternalDate) {
     athletesTableController.setExternalDate(dateStr)
@@ -34,7 +37,7 @@ function syncSelectedDate (dateStr, source) {
     countryDailyChartControls.selectDate(dateStr)
   }
 
-  const newPieData = computeGenderData(dateStr)
+  const newPieData = computeGenderData(dateStr, globalCountryFilter)
   pieControls = renderGenderPieChart('#gender-pie-wrapper', newPieData, handleGenderSelect)
   if (pieControls && globalGenderFilter) {
     pieControls.updateSelection(globalGenderFilter)
@@ -489,15 +492,25 @@ loadCountryDailyMedalData()
     let selectedCountry = null
 
     countrySelect.addEventListener('change', event => {
-      const code = event.target.value
+      const code = event.target.value || null
+      globalCountryFilter = code
+      
+      // Update pie chart instantly if there's a stored date bounds
+      if (globalSelectedDateStr) {
+        syncSelectedDate(globalSelectedDateStr, 'viz6')
+      } else {
+        // Just refresh the pie chart outright with the new total country limits
+        const newPieData = computeGenderData(null, globalCountryFilter)
+        pieControls = renderGenderPieChart('#gender-pie-wrapper', newPieData, handleGenderSelect)
+        if (pieControls && globalGenderFilter) pieControls.updateSelection(globalGenderFilter)
+      }
+
       if (!code) {
         selectedCountry = null
         showLineMode()
-        // Restore arrow-nav subtitle from line chart current state
         if (dailyControls) {
           const idx   = dailyControls.getIndex()
           const total = dailyControls.total
-          // goTo re-fires the callback which calls updateNavUI
           dailyControls.goTo(idx)
         }
         return
