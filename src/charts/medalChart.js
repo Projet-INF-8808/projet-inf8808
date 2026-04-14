@@ -2,32 +2,67 @@ import * as d3 from 'd3'
 
 const ASSET_BASE = `${import.meta.env.BASE_URL}assets`
 
+let rawMedalsCache = null
+let namesCache = null
+
 /**
- * Loads and merges the medals and French country name data.
- * @returns {Promise<Array>} Array of merged data rows.
+ * Loads and caches the medals and French country name data.
  */
 export async function loadData () {
   const [medals, names] = await Promise.all([
-    d3.csv(`${ASSET_BASE}/data/medals_total.csv`, d => ({
-      code: d['Country Code'].trim(),
-      gold: +d.Gold,
-      silver: +d.Silver,
-      bronze: +d.Bronze,
-      total: +d.Total,
-      order: +d.Order
-    })),
+    d3.csv(`${ASSET_BASE}/data/medals.csv`),
     d3.csv(`${ASSET_BASE}/data/country_names_french.csv`, d => ({
       code: d.Code.trim(),
       name: d['Nom du Pays'].trim()
     }))
   ])
 
-  const nameMap = new Map(names.map(n => [n.code, n.name]))
+  rawMedalsCache = medals
+  namesCache = new Map(names.map(n => [n.code, n.name]))
+  
+  return computeMedalTotals(null)
+}
 
-  return medals.map(m => ({
-    ...m,
-    label: nameMap.get(m.code) ?? m.code   // French name — used in tooltip
-  }))
+/**
+ * Computes unique medals for each country, filtered by gender optionally.
+ */
+export function computeMedalTotals (genderFilter) {
+  if (!rawMedalsCache) return []
+  
+  let filtered = rawMedalsCache
+  if (genderFilter) {
+    filtered = rawMedalsCache.filter(d => d.athlete_sex.trim() === genderFilter)
+  }
+
+  const seen = new Set()
+  const uniqueMedals = filtered.filter(d => {
+    // Only count 1 medal per event per country to handle team events
+    const key = `${d.country_code.trim()}||${d.event.trim()}||${d.medal_type.trim()}`
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+
+  const byCountry = d3.group(uniqueMedals, d => d.country_code.trim())
+
+  const aggregated = Array.from(byCountry, ([code, rows]) => {
+    let gold = 0; let silver = 0; let bronze = 0
+    for (const r of rows) {
+      if (r.medal_type === 'Gold') gold++
+      else if (r.medal_type === 'Silver') silver++
+      else if (r.medal_type === 'Bronze') bronze++
+    }
+    return {
+      code,
+      gold,
+      silver,
+      bronze,
+      total: gold + silver + bronze,
+      label: namesCache.get(code) || code
+    }
+  })
+  
+  return aggregated
 }
 
 /**
@@ -97,6 +132,8 @@ export function renderMedalChart (containerId, data) {
   const stack = ['gold', 'silver', 'bronze']
 
   // ---------- SVG ----------
+  d3.select(containerId).selectAll('svg').remove()
+  
   const svg = d3
     .select(containerId)
     .append('svg')
