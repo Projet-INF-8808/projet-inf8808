@@ -252,6 +252,19 @@ export function initAthletesTable (sectionSelector, rawData) {
     })
   }
 
+  athletesTable.setExternalDate = nextDate => {
+    if (!nextDate) return
+
+    const optionValues = Array.from(dateSelect.options).map(option => option.value)
+    if (!optionValues.includes(nextDate)) {
+      dateSelect.insertAdjacentHTML('beforeend', `<option value="${nextDate}">${nextDate}</option>`)
+    }
+
+    filters.date = nextDate
+    dateSelect.value = nextDate
+    athletesTable.setFilters(filters)
+  }
+
   return athletesTable
 }
 
