@@ -1,5 +1,7 @@
 import './style.css'
 import './charts/medalChart.css'
+import './charts/athletesTable.css'
+import { loadAthletesTableMedalsData, initAthletesTable } from './charts/athletesTable.js'
 import './charts/dailyMedalChart.css'
 
 import { loadData, renderMedalChart }           from './charts/medalChart.js'
@@ -20,16 +22,28 @@ document.querySelector('#app').innerHTML = `
     </div>
     <div id="medal-chart-wrapper"></div>
   </section>
-  <div id="medal-tooltip" role="tooltip"></div>
 
-  <!-- ══════════════════════════════════════════════
-       SECTION DIVIDER
-  ══════════════════════════════════════════════ -->
+    <!-- ══════════════════════════════════════════════
+      SECTION DIVIDER
+    ══════════════════════════════════════════════ -->
   <div class="section-divider" aria-hidden="true"></div>
 
-  <!-- ══════════════════════════════════════════════
-       SECTION 5 — Daily medal events
-  ══════════════════════════════════════════════ -->
+  <div id="medal-tooltip" role="tooltip"></div>
+
+    <!-- ══════════════════════════════════════════════
+      SECTION 4 — Athletes table
+    ══════════════════════════════════════════════ -->
+  <section id="athletes-table-section" class="page-section" aria-label="Athletes avec plusieurs medailles">
+  </section>
+
+    <!-- ══════════════════════════════════════════════
+      SECTION DIVIDER
+    ══════════════════════════════════════════════ -->
+  <div class="section-divider" aria-hidden="true"></div>
+
+    <!-- ══════════════════════════════════════════════
+      SECTION 5 — Daily medal events
+    ══════════════════════════════════════════════ -->
   <section id="section-viz5" class="page-section" aria-label="Évolution journalière des événements médaillés">
     <div class="section-header">
       <h2 class="section-title">Évolution journalière des Jeux olympiques d'hiver 2022</h2>
@@ -100,11 +114,28 @@ document.querySelector('#app').innerHTML = `
 //  VIZ 1 — Medal bar chart
 // ─────────────────────────────────────────────────────────────
 loadData()
-  .then(data => renderMedalChart('#medal-chart-wrapper', data))
+  .then(medalData => {
+    renderMedalChart('#medal-chart-wrapper', medalData)
+  })
   .catch(err => {
     console.error('Viz 1 – erreur :', err)
     document.querySelector('#medal-chart-wrapper').innerHTML =
       '<p style="color:red;text-align:center">Erreur lors du chargement des données.</p>'
+  })
+
+// ─────────────────────────────────────────────────────────────
+//  VIZ 4 — Athletes table
+// ─────────────────────────────────────────────────────────────
+loadAthletesTableMedalsData()
+  .then(athletesTableData => {
+    initAthletesTable('#athletes-table-section', athletesTableData)
+  })
+  .catch(err => {
+    console.error('Viz 4 – erreur :', err)
+    const athletesTableSection = document.querySelector('#athletes-table-section')
+    if (athletesTableSection) {
+      athletesTableSection.innerHTML = '<p style="color:red;text-align:center">Erreur lors du chargement des données.</p>'
+    }
   })
 
 // ─────────────────────────────────────────────────────────────
@@ -170,7 +201,7 @@ loadDailyData()
     btnNext.addEventListener('click', () => controls.next())
 
     document.addEventListener('keydown', e => {
-      if (e.key === 'ArrowLeft')  controls.prev()
+      if (e.key === 'ArrowLeft') controls.prev()
       if (e.key === 'ArrowRight') controls.next()
     })
   })
