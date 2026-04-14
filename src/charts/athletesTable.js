@@ -1,5 +1,7 @@
 import * as d3 from 'd3'
 
+const ASSET_BASE = `${import.meta.env.BASE_URL}assets`
+
 const TOUS = 'Tous'
 
 const SEX_MAP = {
@@ -97,7 +99,7 @@ function formatAthleteDisplayName (rawName) {
 
 export async function loadAthletesTableMedalsData () {
   const [rows, countries] = await Promise.all([
-    d3.csv('/src/assets/data/medals.csv', d => ({
+    d3.csv(`${ASSET_BASE}/data/medals.csv`, d => ({
       medal_date: normalizeDate(d.medal_date),
       athlete_name: (d.athlete_name ?? '').trim(),
       athlete_sex: normalizeSex(d.athlete_sex),
@@ -107,7 +109,7 @@ export async function loadAthletesTableMedalsData () {
       event: (d.event ?? '').trim(),
       medal_type: normalizeMedalType(d.medal_type)
     })),
-    d3.csv('/src/assets/data/country_names_french.csv', d => ({
+    d3.csv(`${ASSET_BASE}/data/country_names_french.csv`, d => ({
       code: (d.Code ?? '').trim(),
       name: (d['Nom du Pays'] ?? '').trim()
     }))

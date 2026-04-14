@@ -1,5 +1,7 @@
 import * as d3 from 'd3'
 
+const ASSET_BASE = `${import.meta.env.BASE_URL}assets`
+
 // ─────────────────────────────────────────────────────────────
 //  DATA LOADING
 // ─────────────────────────────────────────────────────────────
@@ -10,7 +12,7 @@ import * as d3 from 'd3'
  * @returns {Promise<Array<{date: Date, count: number, events: string[]}>>}
  */
 export async function loadDailyData () {
-  const raw = await d3.csv('/src/assets/data/medals.csv', d => ({
+  const raw = await d3.csv(`${ASSET_BASE}/data/medals.csv`, d => ({
     type:         d.medal_type.trim(),
     date:         d.medal_date.trim().slice(0, 10),
     event:        d.event.trim(),
@@ -279,7 +281,7 @@ function showTooltip (event, d) {
 
   const listItems = d.events.slice(0, 8).map(e =>
     `<li class="dt-event-item">
-       <img class="dt-flag" src="/src/assets/flags/${e.code.toLowerCase()}.svg" alt="${e.code}" onerror="this.style.display='none'" />
+       <img class="dt-flag" src="${ASSET_BASE}/flags/${e.code.toLowerCase()}.svg" alt="${e.code}" onerror="this.style.display='none'" />
        <span class="dt-event-name">${e.event}</span>
      </li>`
   ).join('')

@@ -8,6 +8,8 @@ import { loadData, renderMedalChart }           from './charts/medalChart.js'
 import { loadDailyData, renderDailyMedalChart } from './charts/dailyMedalChart.js'
 import * as d3 from 'd3'
 
+const ASSET_BASE = `${import.meta.env.BASE_URL}assets`
+
 // ─────────────────────────────────────────────────────────────
 //  PAGE SHELL
 // ─────────────────────────────────────────────────────────────
@@ -163,7 +165,7 @@ function renderDetailPanel (dayData) {
   const cards = dayData.events.map(e => `
     <div class="dd-card">
       <img class="dd-card-flag"
-           src="/src/assets/flags/${e.code.toLowerCase()}.svg"
+           src="${ASSET_BASE}/flags/${e.code.toLowerCase()}.svg"
            alt="${e.code}"
            onerror="this.style.display='none'" />
       <div class="dd-card-info">

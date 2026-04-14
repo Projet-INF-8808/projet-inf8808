@@ -1,12 +1,14 @@
 import * as d3 from 'd3'
 
+const ASSET_BASE = `${import.meta.env.BASE_URL}assets`
+
 /**
  * Loads and merges the medals and French country name data.
  * @returns {Promise<Array>} Array of merged data rows.
  */
 export async function loadData () {
   const [medals, names] = await Promise.all([
-    d3.csv('/src/assets/data/medals_total.csv', d => ({
+    d3.csv(`${ASSET_BASE}/data/medals_total.csv`, d => ({
       code: d['Country Code'].trim(),
       gold: +d.Gold,
       silver: +d.Silver,
@@ -14,7 +16,7 @@ export async function loadData () {
       total: +d.Total,
       order: +d.Order
     })),
-    d3.csv('/src/assets/data/country_names_french.csv', d => ({
+    d3.csv(`${ASSET_BASE}/data/country_names_french.csv`, d => ({
       code: d.Code.trim(),
       name: d['Nom du Pays'].trim()
     }))
@@ -173,7 +175,7 @@ export function renderMedalChart (containerId, data) {
   labelGroups
     .append('image')
     .attr('class', 'country-flag')
-    .attr('href', d => `/src/assets/flags/${d.code.toLowerCase()}.svg`)
+    .attr('href', d => `${ASSET_BASE}/flags/${d.code.toLowerCase()}.svg`)
     .attr('x', flagX)
     .attr('y', -flagH / 2)
     .attr('width', flagW)
@@ -316,7 +318,7 @@ function showTooltip (event, d, medal) {
     bronze: '#CD7F32'
   }
 
-  const flagSrc = `/src/assets/flags/${d.code.toLowerCase()}.svg`
+  const flagSrc = `${ASSET_BASE}/flags/${d.code.toLowerCase()}.svg`
 
   const tt = d3.select('#medal-tooltip')
   tt.style('display', 'block')
