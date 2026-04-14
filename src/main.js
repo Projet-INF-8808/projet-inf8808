@@ -3,12 +3,39 @@ import './charts/medalChart.css'
 import './charts/athletesTable.css'
 import { loadAthletesTableMedalsData, initAthletesTable } from './charts/athletesTable.js'
 import './charts/dailyMedalChart.css'
+import './charts/countryDailyMedalChart.css'
 
 import { loadData, renderMedalChart }           from './charts/medalChart.js'
 import { loadDailyData, renderDailyMedalChart } from './charts/dailyMedalChart.js'
+import { loadCountryDailyMedalData, renderCountryDailyMedalChart } from './charts/countryDailyMedalChart.js'
 import * as d3 from 'd3'
 
 const ASSET_BASE = `${import.meta.env.BASE_URL}assets`
+
+let athletesTableController = null
+let dailyControls = null
+let dailyDateIndex = new Map()
+let countryDailyChartControls = null
+
+function syncSelectedDate (dateStr, source) {
+  if (!dateStr) return
+
+  if (athletesTableController?.setExternalDate) {
+    athletesTableController.setExternalDate(dateStr)
+  }
+
+  if (source !== 'viz5' && dailyControls?.goTo && dailyDateIndex.has(dateStr)) {
+    dailyControls.goTo(dailyDateIndex.get(dateStr))
+  }
+
+  if (source !== 'viz6' && countryDailyChartControls?.selectDate) {
+    countryDailyChartControls.selectDate(dateStr)
+  }
+
+  document.dispatchEvent(new CustomEvent('olympic-date-selected', {
+    detail: { date: dateStr, source }
+  }))
+}
 
 // ─────────────────────────────────────────────────────────────
 //  PAGE SHELL
@@ -110,6 +137,40 @@ document.querySelector('#app').innerHTML = `
     </div>
   </section>
   <div id="daily-tooltip" role="tooltip"></div>
+
+  <div class="section-divider" aria-hidden="true"></div>
+
+  <section id="section-viz6" class="page-section" aria-label="Médailles quotidiennes par pays">
+    <div class="section-header">
+      <h2 class="section-title">Médailles quotidiennes par pays</h2>
+      <p class="section-subtitle">
+        Barres empilées par journée et par type de médaille — choisissez un pays, survolez un segment ou sélectionnez une date
+      </p>
+    </div>
+
+    <div class="country-daily-layout">
+      <div class="country-daily-left">
+        <div class="country-daily-controls">
+          <div class="country-daily-control">
+            <label for="country-daily-select">Pays</label>
+            <select id="country-daily-select"></select>
+          </div>
+          <div class="country-daily-country" id="country-daily-country"></div>
+        </div>
+        <div id="country-daily-chart-wrapper"></div>
+      </div>
+
+      <aside class="country-daily-panel" id="country-daily-detail" aria-live="polite">
+        <div class="country-daily-panel-header">
+          <span class="country-daily-panel-title">Date sélectionnée</span>
+        </div>
+        <div class="country-daily-panel-body">
+          <p class="country-daily-empty">Sélectionnez une barre.</p>
+        </div>
+      </aside>
+    </div>
+  </section>
+  <div id="country-daily-tooltip" role="tooltip"></div>
 `
 
 // ─────────────────────────────────────────────────────────────
@@ -130,7 +191,7 @@ loadData()
 // ─────────────────────────────────────────────────────────────
 loadAthletesTableMedalsData()
   .then(athletesTableData => {
-    initAthletesTable('#athletes-table-section', athletesTableData)
+    athletesTableController = initAthletesTable('#athletes-table-section', athletesTableData)
   })
   .catch(err => {
     console.error('Viz 4 – erreur :', err)
@@ -190,25 +251,145 @@ function renderDetailPanel (dayData) {
 
 loadDailyData()
   .then(data => {
-    const controls = renderDailyMedalChart(
+    dailyDateIndex = new Map(data.map((day, index) => [d3.timeFormat('%Y-%m-%d')(day.date), index]))
+
+    dailyControls = renderDailyMedalChart(
       '#daily-chart-wrapper',
       data,
       (_date, dayData, index, total) => {
         renderDetailPanel(dayData)
         updateNavUI(index, total, dayData)
+        syncSelectedDate(d3.timeFormat('%Y-%m-%d')(dayData.date), 'viz5')
       }
     )
 
-    btnPrev.addEventListener('click', () => controls.prev())
-    btnNext.addEventListener('click', () => controls.next())
+    btnPrev.addEventListener('click', () => dailyControls.prev())
+    btnNext.addEventListener('click', () => dailyControls.next())
 
     document.addEventListener('keydown', e => {
-      if (e.key === 'ArrowLeft') controls.prev()
-      if (e.key === 'ArrowRight') controls.next()
+      if (e.key === 'ArrowLeft') dailyControls.prev()
+      if (e.key === 'ArrowRight') dailyControls.next()
     })
   })
   .catch(err => {
     console.error('Viz 5 – erreur :', err)
     document.querySelector('#daily-chart-wrapper').innerHTML =
       '<p style="color:red;text-align:center">Erreur lors du chargement des données journalières.</p>'
+  })
+
+// ─────────────────────────────────────────────────────────────
+//  VIZ 6 — Country daily stacked medal chart
+// ─────────────────────────────────────────────────────────────
+const countrySelect = document.getElementById('country-daily-select')
+const countrySummary = document.getElementById('country-daily-country')
+const countryDetail = document.getElementById('country-daily-detail')
+
+const fmtViz6Date = d3.timeFormat('%d %B %Y')
+
+function renderCountryDailyDetail (countryData, dayData) {
+  if (!countryDetail || !countryData || !dayData) return
+
+  const medalEvents = dayData.medals
+    .sort((a, b) => a.medalType.localeCompare(b.medalType) || a.discipline.localeCompare(b.discipline))
+    .map(medal => {
+      const label = medal.medalType === 'gold' ? 'Or' : medal.medalType === 'silver' ? 'Argent' : 'Bronze'
+      return `
+        <div class="country-daily-event">
+          <div class="country-daily-event-name">${medal.event}</div>
+          <div class="country-daily-event-meta">${medal.discipline} · ${label}</div>
+        </div>
+      `
+    })
+    .join('')
+
+  countryDetail.innerHTML = `
+    <div class="country-daily-panel-header">
+      <span class="country-daily-panel-title">Date sélectionnée</span>
+      <span class="country-daily-badge">${dayData.total} médaille${dayData.total > 1 ? 's' : ''}</span>
+    </div>
+    <div class="country-daily-panel-body">
+      <div class="country-daily-date">${fmtViz6Date(dayData.date)}</div>
+      <div class="country-daily-stats">
+        <div class="country-daily-stat">
+          <span class="country-daily-stat-label"><span class="country-daily-stat-dot" style="background:#FFD700"></span>Or</span>
+          <span class="country-daily-stat-value">${dayData.gold}</span>
+        </div>
+        <div class="country-daily-stat">
+          <span class="country-daily-stat-label"><span class="country-daily-stat-dot" style="background:#C0C0C0"></span>Argent</span>
+          <span class="country-daily-stat-value">${dayData.silver}</span>
+        </div>
+        <div class="country-daily-stat">
+          <span class="country-daily-stat-label"><span class="country-daily-stat-dot" style="background:#CD7F32"></span>Bronze</span>
+          <span class="country-daily-stat-value">${dayData.bronze}</span>
+        </div>
+      </div>
+      <div class="country-daily-events">
+        ${medalEvents || '<p class="country-daily-empty">Aucune médaille pour cette date.</p>'}
+      </div>
+    </div>
+  `
+}
+
+function renderCountryDailyCountry (countryData, selectedDateStr) {
+  if (!countryData) return
+
+  if (countrySummary) {
+    countrySummary.innerHTML = `
+      <img src="${ASSET_BASE}/flags/${countryData.code.toLowerCase()}.svg" alt="${countryData.code}" onerror="this.style.display='none'" />
+      <span>${countryData.label} · ${countryData.totals.total} médailles</span>
+    `
+  }
+
+  const selectedDay = countryData.daily.find(day => day.dateStr === selectedDateStr && day.total > 0) ||
+    countryData.daily.find(day => day.total > 0) ||
+    countryData.daily[0]
+
+  countryDailyChartControls = renderCountryDailyMedalChart(
+    '#country-daily-chart-wrapper',
+    countryData,
+    {
+      selectedDateStr: selectedDay?.dateStr,
+      onDateSelect: dayData => {
+        renderCountryDailyDetail(countryData, dayData)
+        syncSelectedDate(dayData.dateStr, 'viz6')
+      }
+    }
+  )
+
+  renderCountryDailyDetail(countryData, selectedDay)
+  if (selectedDay) {
+    countryDailyChartControls?.selectDate?.(selectedDay.dateStr)
+  }
+}
+
+loadCountryDailyMedalData()
+  .then(data => {
+    if (!countrySelect || !data.countries.length) return
+
+    countrySelect.innerHTML = data.countries
+      .map(country => `<option value="${country.code}">${country.label} (${country.code})</option>`)
+      .join('')
+
+    let selectedCountry = data.countries[0]
+    countrySelect.value = selectedCountry.code
+    renderCountryDailyCountry(selectedCountry)
+
+    countrySelect.addEventListener('change', event => {
+      selectedCountry = data.countries.find(country => country.code === event.target.value) ?? data.countries[0]
+      renderCountryDailyCountry(selectedCountry)
+    })
+
+    document.addEventListener('olympic-date-selected', event => {
+      if (event.detail?.source === 'viz6') return
+      const dateStr = event.detail?.date
+      const selectedDay = selectedCountry?.daily.find(day => day.dateStr === dateStr)
+      if (!selectedDay) return
+      countryDailyChartControls?.selectDate?.(dateStr)
+      renderCountryDailyDetail(selectedCountry, selectedDay)
+    })
+  })
+  .catch(err => {
+    console.error('Viz 6 – erreur :', err)
+    document.querySelector('#country-daily-chart-wrapper').innerHTML =
+      '<p style="color:red;text-align:center">Erreur lors du chargement des données par pays.</p>'
   })
