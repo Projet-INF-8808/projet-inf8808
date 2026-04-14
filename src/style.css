@@ -178,8 +178,7 @@ code {
 }
 
 #app {
-  width: 1126px;
-  max-width: 100%;
+  max-width: 95%;
   margin: 0 auto;
   border-inline: 1px solid var(--border);
   display: flex;

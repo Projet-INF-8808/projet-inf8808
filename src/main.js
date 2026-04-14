@@ -9,7 +9,7 @@ import './style.css'
 import * as d3 from 'd3'
 import { loadCountryDailyMedalData, renderCountryDailyMedalChart } from './charts/countryDailyMedalChart.js'
 import { buildDailyData, loadDailyData, renderDailyMedalChart } from './charts/dailyMedalChart.js'
-import { loadGenderData, renderGenderPieChart } from './charts/genderPieChart.js'
+import { loadGenderData, renderGenderPieChart, computeGenderData } from './charts/genderPieChart.js'
 import { computeMedalTotals, loadData, renderMedalChart } from './charts/medalChart.js'
 
 const ASSET_BASE = `${import.meta.env.BASE_URL}assets`
@@ -34,6 +34,12 @@ function syncSelectedDate (dateStr, source) {
     countryDailyChartControls.selectDate(dateStr)
   }
 
+  const newPieData = computeGenderData(dateStr)
+  pieControls = renderGenderPieChart('#gender-pie-wrapper', newPieData, handleGenderSelect)
+  if (pieControls && globalGenderFilter) {
+    pieControls.updateSelection(globalGenderFilter)
+  }
+
   document.dispatchEvent(new CustomEvent('olympic-date-selected', {
     detail: { date: dateStr, source }
   }))
@@ -54,40 +60,16 @@ document.querySelector('#app').innerHTML = `
     <div id="medal-chart-wrapper"></div>
   </section>
 
-    <!-- ══════════════════════════════════════════════
-      SECTION DIVIDER
-    ══════════════════════════════════════════════ -->
   <div class="section-divider" aria-hidden="true"></div>
 
-    <!-- ══════════════════════════════════════════════
-      SECTION 2 — Gender pie chart
-    ══════════════════════════════════════════════ -->
-  <section id="section-viz2" class="page-section" aria-label="Répartition par genre">
-    <div class="section-header">
-      <h2 class="section-title">Répartition selon le genre</h2>
-      <p class="section-subtitle">Participation proportionnelle par catégorie</p>
-    </div>
-    <div id="gender-pie-wrapper"></div>
-  </section>
+  <!-- tooltips (fixed-position, can live anywhere) -->
+  <div id="medal-tooltip"   role="tooltip"></div>
+  <div id="daily-tooltip"   role="tooltip"></div>
+  <div id="country-daily-tooltip" role="tooltip"></div>
 
-  <div class="section-divider" aria-hidden="true"></div>
-
-  <div id="medal-tooltip" role="tooltip"></div>
-
-    <!-- ══════════════════════════════════════════════
-      SECTION 4 — Athletes table
-    ══════════════════════════════════════════════ -->
-  <section id="athletes-table-section" class="page-section" aria-label="Athletes avec plusieurs medailles">
-  </section>
-
-    <!-- ══════════════════════════════════════════════
-      SECTION DIVIDER
-    ══════════════════════════════════════════════ -->
-  <div class="section-divider" aria-hidden="true"></div>
-
-    <!-- ══════════════════════════════════════════════
-      SECTION 5 — Daily medal events
-    ══════════════════════════════════════════════ -->
+  <!-- ══════════════════════════════════════════════
+       SECTION 5 — Daily chart + side panels
+  ══════════════════════════════════════════════ -->
   <section id="section-viz5" class="page-section" aria-label="Évolution journalière des événements médaillés">
     <div class="section-header">
       <h2 class="section-title">Évolution journalière des Jeux olympiques d'hiver 2022</h2>
@@ -96,11 +78,22 @@ document.querySelector('#app').innerHTML = `
       </p>
     </div>
 
-    <div class="daily-layout">
+    <!-- Country selector row (full width above the 2-col grid) -->
+    <div class="daily-country-selector-row">
+      <div class="country-daily-control">
+        <label for="country-daily-select">Filtrer par pays</label>
+        <select id="country-daily-select"></select>
+      </div>
+      <div class="country-daily-country" id="country-daily-country"></div>
+    </div>
 
-      <!-- LEFT : chart + arrow nav -->
-      <div class="daily-left">
+    <!-- 2-col grid: chart left, panels right -->
+    <div class="viz5-main-layout">
+
+      <!-- LEFT : line/bar chart + arrow nav -->
+      <div class="viz5-left">
         <div id="daily-chart-wrapper"></div>
+        <div id="country-daily-chart-wrapper" style="display:none;"></div>
 
         <div class="time-nav" id="time-nav" aria-label="Navigation temporelle">
           <button class="time-nav-btn" id="btn-prev" aria-label="Jour précédent" disabled>&#8592;</button>
@@ -112,81 +105,41 @@ document.querySelector('#app').innerHTML = `
         </div>
       </div>
 
-      <!-- RIGHT : three panels -->
-      <div class="daily-right">
+      <!-- RIGHT : 3 stacked panels -->
+      <div class="viz5-right">
 
-        <!-- Panel 1 — Events for selected day -->
-        <div class="side-panel" id="daily-detail" aria-live="polite">
+        <!-- Panel 1 — Sexe (gender pie chart) -->
+        <div class="side-panel" id="panel-sex">
           <div class="side-panel-header">
-            <span class="side-panel-title">Événements du jour</span>
+            <span class="side-panel-title">Sexe</span>
           </div>
-          <div class="side-panel-body side-panel-placeholder">
-            <span class="placeholder-icon">🏅</span>
-            <span class="placeholder-text">Sélectionnez un jour</span>
+          <div class="side-panel-body side-panel-pie">
+            <div id="gender-pie-wrapper"></div>
           </div>
         </div>
 
-        <!-- Panel 2 — Placeholder -->
-        <div class="side-panel">
+        <!-- Panel 2 — Événements (pictogram placeholder) -->
+        <div class="side-panel" id="panel-events">
           <div class="side-panel-header">
-            <span class="side-panel-title">Statistiques</span>
+            <span class="side-panel-title">Événements</span>
           </div>
           <div class="side-panel-body side-panel-placeholder">
-            <span class="placeholder-icon">📊</span>
-            <span class="placeholder-text">À venir</span>
+            <span class="placeholder-icon">🎿</span>
+            <span class="placeholder-text">Pictogramme à venir</span>
           </div>
         </div>
 
-        <!-- Panel 3 — Placeholder -->
-        <div class="side-panel">
-          <div class="side-panel-header">
-            <span class="side-panel-title">Classement</span>
-          </div>
-          <div class="side-panel-body side-panel-placeholder">
-            <span class="placeholder-icon">🏆</span>
-            <span class="placeholder-text">À venir</span>
-          </div>
-        </div>
+        <!-- Panel 3 — Détails (athletes table) -->
+        <section id="athletes-table-section" class="side-panel" aria-label="Athlètes avec plusieurs médailles">
+        </section>
 
       </div>
     </div>
   </section>
-  <div id="daily-tooltip" role="tooltip"></div>
-
-  <div class="section-divider" aria-hidden="true"></div>
-
-  <section id="section-viz6" class="page-section" aria-label="Médailles quotidiennes par pays">
-    <div class="section-header">
-      <h2 class="section-title">Médailles quotidiennes par pays</h2>
-      <p class="section-subtitle">
-        Barres empilées par journée et par type de médaille — choisissez un pays, survolez un segment ou sélectionnez une date
-      </p>
-    </div>
-
-    <div class="country-daily-layout">
-      <div class="country-daily-left">
-        <div class="country-daily-controls">
-          <div class="country-daily-control">
-            <label for="country-daily-select">Pays</label>
-            <select id="country-daily-select"></select>
-          </div>
-          <div class="country-daily-country" id="country-daily-country"></div>
-        </div>
-        <div id="country-daily-chart-wrapper"></div>
-      </div>
-
-      <aside class="country-daily-panel" id="country-daily-detail" aria-live="polite">
-        <div class="country-daily-panel-header">
-          <span class="country-daily-panel-title">Date sélectionnée</span>
-        </div>
-        <div class="country-daily-panel-body">
-          <p class="country-daily-empty">Sélectionnez une barre.</p>
-        </div>
-      </aside>
-    </div>
-  </section>
-  <div id="country-daily-tooltip" role="tooltip"></div>
 `
+
+
+
 
 // ─────────────────────────────────────────────────────────────
 //  GLOBAL STATE
@@ -210,14 +163,21 @@ function updateAllVisualizations () {
     sexSelect.dispatchEvent(new Event('change'))
   }
 
+  let currentIndex = 0
+  if (dailyControls) {
+    currentIndex = dailyControls.getIndex()
+  }
+
   const filteredDailyData = buildDailyData(globalGenderFilter)
-  dailyChartControls = renderDailyMedalChart(
+  dailyControls = renderDailyMedalChart(
     '#daily-chart-wrapper',
     filteredDailyData,
     (_date, dayData, index, total) => {
       renderDetailPanel(dayData)
       updateNavUI(index, total, dayData)
-    }
+      syncSelectedDate(d3.timeFormat('%Y-%m-%d')(dayData.date), 'viz5')
+    },
+    { initialIndex: currentIndex }
   )
 }
 
@@ -327,13 +287,14 @@ loadDailyData()
       }
     )
 
-    btnPrev.onclick = () => { if (dailyChartControls) dailyChartControls.prev() }
-    btnNext.onclick = () => { if (dailyChartControls) dailyChartControls.next() }
+    btnPrev.onclick = () => { activeChartControls()?.prev?.() }
+    btnNext.onclick = () => { activeChartControls()?.next?.() }
 
     document.onkeydown = e => {
-      if (!dailyChartControls) return
-      if (e.key === 'ArrowLeft') dailyChartControls.prev()
-      if (e.key === 'ArrowRight') dailyChartControls.next()
+      const ctrl = activeChartControls()
+      if (!ctrl) return
+      if (e.key === 'ArrowLeft') ctrl.prev()
+      if (e.key === 'ArrowRight') ctrl.next()
     }
   })
   .catch(err => {
@@ -343,13 +304,39 @@ loadDailyData()
   })
 
 // ─────────────────────────────────────────────────────────────
-//  VIZ 6 — Country daily stacked medal chart
+//  VIZ 6 — Country daily bar chart (embedded in section 5)
 // ─────────────────────────────────────────────────────────────
-const countrySelect = document.getElementById('country-daily-select')
+const countrySelect  = document.getElementById('country-daily-select')
 const countrySummary = document.getElementById('country-daily-country')
-const countryDetail = document.getElementById('country-daily-detail')
+const countryDetail  = document.getElementById('country-daily-detail')
+
+const lineWrapper    = document.getElementById('daily-chart-wrapper')
+const barWrapper     = document.getElementById('country-daily-chart-wrapper')
 
 const fmtViz6Date = d3.timeFormat('%d %B %Y')
+
+/** Returns the currently-active chart controls (line or bar). */
+function activeChartControls () {
+  return barWrapper?.style.display !== 'none' ? barNavControls : dailyControls
+}
+
+function showLineMode () {
+  lineWrapper.style.display = ''
+  barWrapper.style.display  = 'none'
+  if (countrySummary) countrySummary.innerHTML = ''
+}
+
+function showBarMode (countryData) {
+  lineWrapper.style.display = 'none'
+  barWrapper.style.display  = ''
+
+  if (countrySummary) {
+    countrySummary.innerHTML = `
+      <img src="${ASSET_BASE}/flags/${countryData.code.toLowerCase()}.svg" alt="${countryData.code}" onerror="this.style.display='none'" />
+      <span>${countryData.label} · ${countryData.totals.total} médailles</span>
+    `
+  }
+}
 
 function renderCountryDailyDetail (countryData, dayData) {
   if (!countryDetail || !countryData || !dayData) return
@@ -395,17 +382,56 @@ function renderCountryDailyDetail (countryData, dayData) {
   `
 }
 
+/**
+ * Build bar-chart navigation (prev/next by date index).
+ * Mirrors the line chart's selectIndex pattern for the bar chart.
+ * Pass skipInitialSelect=true when called before countryDailyChartControls is assigned.
+ */
+function buildBarControls (countryData, currentDateStr, onSelect, skipInitialSelect) {
+  const dates = countryData.daily.map(d => d.dateStr)
+  let idx = Math.max(0, dates.indexOf(currentDateStr))
+
+  function goTo (i) {
+    idx = Math.max(0, Math.min(dates.length - 1, i))
+    const day = countryData.daily[idx]
+    updateNavUI(idx, dates.length, { date: day.date, count: day.total })
+    btnPrev.disabled = idx <= 0
+    btnNext.disabled = idx >= dates.length - 1
+    navDate.textContent = fmtShort(day.date)
+    navProgress.textContent = `Jour ${idx + 1} / ${dates.length}`
+    countryDailyChartControls?.selectDate?.(day.dateStr)
+    if (typeof onSelect === 'function') onSelect(day)
+  }
+
+  // Only call goTo on init when countryDailyChartControls is already assigned
+  if (!skipInitialSelect) {
+    goTo(idx)
+  } else {
+    // Update nav UI without calling selectDate (chart not ready yet)
+    const day = countryData.daily[idx]
+    updateNavUI(idx, dates.length, { date: day.date, count: day.total })
+    btnPrev.disabled = idx <= 0
+    btnNext.disabled = idx >= dates.length - 1
+    navDate.textContent = fmtShort(day.date)
+    navProgress.textContent = `Jour ${idx + 1} / ${dates.length}`
+  }
+
+  return {
+    prev: () => goTo(idx - 1),
+    next: () => goTo(idx + 1),
+    goTo
+  }
+}
+
+let barNavControls = null   // arrow-nav wrapper for bar mode
+
 function renderCountryDailyCountry (countryData, selectedDateStr) {
   if (!countryData) return
 
-  if (countrySummary) {
-    countrySummary.innerHTML = `
-      <img src="${ASSET_BASE}/flags/${countryData.code.toLowerCase()}.svg" alt="${countryData.code}" onerror="this.style.display='none'" />
-      <span>${countryData.label} · ${countryData.totals.total} médailles</span>
-    `
-  }
+  showBarMode(countryData)
 
-  const selectedDay = countryData.daily.find(day => day.dateStr === selectedDateStr && day.total > 0) ||
+  const selectedDay =
+    countryData.daily.find(day => day.dateStr === selectedDateStr && day.total > 0) ||
     countryData.daily.find(day => day.total > 0) ||
     countryData.daily[0]
 
@@ -417,11 +443,29 @@ function renderCountryDailyCountry (countryData, selectedDateStr) {
       onDateSelect: dayData => {
         renderCountryDailyDetail(countryData, dayData)
         syncSelectedDate(dayData.dateStr, 'viz6')
+        // keep arrow-nav index in sync when user clicks a bar
+        const i = countryData.daily.findIndex(d => d.dateStr === dayData.dateStr)
+        if (i >= 0) {
+          barNavControls?.goTo(i)
+        }
       }
     }
   )
 
   renderCountryDailyDetail(countryData, selectedDay)
+
+  // Build arrow-nav that drives the bar chart (skipInitialSelect because
+  // countryDailyChartControls was just assigned above — selectDate works now)
+  barNavControls = buildBarControls(
+    countryData,
+    selectedDay?.dateStr,
+    dayData => {
+      renderCountryDailyDetail(countryData, dayData)
+      syncSelectedDate(dayData.dateStr, 'viz6')
+    },
+    true  // nav UI already correct from renderCountryDailyMedalChart initial selection
+  )
+  // Immediately sync the selected date highlight on the bar chart
   if (selectedDay) {
     countryDailyChartControls?.selectDate?.(selectedDay.dateStr)
   }
@@ -431,26 +475,55 @@ loadCountryDailyMedalData()
   .then(data => {
     if (!countrySelect || !data.countries.length) return
 
-    countrySelect.innerHTML = data.countries
-      .map(country => `<option value="${country.code}">${country.label} (${country.code})</option>`)
-      .join('')
+    // Add a "no country" sentinel as the first option
+    countrySelect.innerHTML =
+      '<option value="">— Tous les pays —</option>' +
+      data.countries
+        .map(country => `<option value="${country.code}">${country.label} (${country.code})</option>`)
+        .join('')
 
-    let selectedCountry = data.countries[0]
-    countrySelect.value = selectedCountry.code
-    renderCountryDailyCountry(selectedCountry)
+    // Default: no country selected → line chart mode
+    countrySelect.value = ''
+    showLineMode()
+
+    let selectedCountry = null
 
     countrySelect.addEventListener('change', event => {
-      selectedCountry = data.countries.find(country => country.code === event.target.value) ?? data.countries[0]
-      renderCountryDailyCountry(selectedCountry)
+      const code = event.target.value
+      if (!code) {
+        selectedCountry = null
+        showLineMode()
+        // Restore arrow-nav subtitle from line chart current state
+        if (dailyControls) {
+          const idx   = dailyControls.getIndex()
+          const total = dailyControls.total
+          // goTo re-fires the callback which calls updateNavUI
+          dailyControls.goTo(idx)
+        }
+        return
+      }
+      selectedCountry = data.countries.find(c => c.code === code) ?? null
+      if (selectedCountry) {
+        // Pass the currently-selected line-chart date to the bar chart
+        const currentDateStr = navDate.textContent !== '—'
+          ? dailyDateIndex
+              ? [...dailyDateIndex.entries()].find(([, i]) => i === dailyControls?.getIndex())?.[0]
+              : null
+          : null
+        renderCountryDailyCountry(selectedCountry, currentDateStr)
+      }
     })
 
     document.addEventListener('olympic-date-selected', event => {
       if (event.detail?.source === 'viz6') return
       const dateStr = event.detail?.date
-      const selectedDay = selectedCountry?.daily.find(day => day.dateStr === dateStr)
+      if (!selectedCountry || !dateStr) return
+      const selectedDay = selectedCountry.daily.find(day => day.dateStr === dateStr)
       if (!selectedDay) return
       countryDailyChartControls?.selectDate?.(dateStr)
       renderCountryDailyDetail(selectedCountry, selectedDay)
+      const i = selectedCountry.daily.findIndex(d => d.dateStr === dateStr)
+      if (i >= 0) barNavControls?.goTo(i)
     })
   })
   .catch(err => {

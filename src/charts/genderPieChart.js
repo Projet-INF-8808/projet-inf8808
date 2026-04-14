@@ -2,18 +2,30 @@ import * as d3 from 'd3'
 
 const ASSET_BASE = `${import.meta.env.BASE_URL}assets`
 
+let rawGenderCache = null
+
 export async function loadGenderData () {
-  const raw = await d3.csv(`${ASSET_BASE}/data/medals.csv`)
+  rawGenderCache = await d3.csv(`${ASSET_BASE}/data/medals.csv`)
+  return computeGenderData(null)
+}
+
+export function computeGenderData (dateStr) {
+  if (!rawGenderCache) return []
   
-  const roll = d3.rollup(raw, v => v.length, d => d.athlete_sex.trim())
-  const total = raw.length
+  let data = rawGenderCache
+  if (dateStr) {
+    data = data.filter(d => d.medal_date.trim().slice(0, 10) === dateStr)
+  }
+  
+  const roll = d3.rollup(data, v => v.length, d => d.athlete_sex.trim())
+  const total = data.length || 1
   
   return [
     { key: 'M', label: 'Male', count: roll.get('M') || 0, color: '#82C6C0' },
     { key: 'W', label: 'Female', count: roll.get('W') || 0, color: '#2B4450' },
     { key: 'X', label: 'Mixed', count: roll.get('X') || 0, color: '#E3C273' },
     { key: 'O', label: 'Other', count: roll.get('O') || 0, color: '#F6A266' }
-  ].map(d => ({
+  ].filter(d => d.count > 0).map(d => ({
     ...d,
     percent: (d.count / total * 100).toFixed(1)
   }))
@@ -23,9 +35,9 @@ export function renderGenderPieChart (containerId, data, onSelect) {
   const container = document.querySelector(containerId)
   if (!container) return
   
-  const width = container.getBoundingClientRect().width || 600
-  const height = 450
-  const margin = 50
+  const width = container.getBoundingClientRect().width || 280
+  const height = 240
+  const margin = 35
   const radius = Math.min(width, height) / 2 - margin
 
   d3.select(containerId).selectAll('svg').remove()
@@ -109,10 +121,10 @@ export function renderGenderPieChart (containerId, data, onSelect) {
   // ── LEGEND ───────────────────────────────────────────────────
   const legendGroup = svg.append('g')
     .attr('class', 'gender-legend-group')
-    .attr('transform', `translate(${width / 2}, ${height - 20})`)
+    .attr('transform', `translate(${width / 2}, ${height - 15})`)
   
-  const legendSpace = 90
-  const startX = -((data.length * legendSpace) / 2) + (legendSpace / 2)
+  const legendSpace = 75
+  const startX = -((data.length * legendSpace) / 2) + (legendSpace / 2) - 10
 
   const legendItems = legendGroup.selectAll('.gender-legend-item')
     .data(data)

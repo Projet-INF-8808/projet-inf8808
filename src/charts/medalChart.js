@@ -137,8 +137,9 @@ export function renderMedalChart (containerId, data) {
   const svg = d3
     .select(containerId)
     .append('svg')
-    .attr('width', width)
-    .attr('height', height)
+    .attr('viewBox', `0 0 ${width} ${height}`)
+    .style('width', '100%')
+    .style('height', 'auto')
     .attr('role', 'img')
     .attr('aria-label', 'Graphique des médailles olympiques par pays')
 

@@ -139,130 +139,22 @@ export function initAthletesTable (sectionSelector, rawData) {
   if (!section) return null
 
   section.innerHTML = `
-    <h1 class="athletes-table-title">Athletes avec plusieurs médailles</h1>
-    <div class="athletes-table-controls" id="athletes-table-controls"></div>
-    <div id="athletes-table-root"></div>
+    <div class="side-panel-header">
+      <span class="side-panel-title">Athlètes avec plusieurs médailles</span>
+    </div>
+    <div class="side-panel-body">
+      <div id="athletes-table-root"></div>
+    </div>
   `
 
   const options = getAthletesTableFilterOptions(rawData)
-  const filters = {
-    date: options.dates[0] ?? '',
-    country: TOUS,
-    sex: TOUS,
-    discipline: TOUS
-  }
+  const defaultDate = options.dates[0] ?? ''
 
-  const filterConfig = [
-    { key: 'date', label: 'Date', options: options.dates, includeAll: false },
-    { key: 'country', label: 'Pays', options: options.countries, includeAll: true },
-    { key: 'sex', label: 'Sexe', options: options.sexes, includeAll: true },
-    { key: 'discipline', label: 'Discipline', options: options.disciplines, includeAll: true }
-  ]
-
-  const controlsContainer = section.querySelector('#athletes-table-controls')
-  controlsContainer.innerHTML = filterConfig.map(cfg => {
-    const values = [...(cfg.includeAll ? [TOUS] : []), ...cfg.options]
-
-    return `
-      <div class="athletes-table-control">
-        <label for="athletes-table-filter-${cfg.key}">${cfg.label}</label>
-        <select id="athletes-table-filter-${cfg.key}">
-          ${values.map(value => `<option value="${value}">${value}</option>`).join('')}
-        </select>
-      </div>
-    `
-  }).join('')
-
-  controlsContainer.insertAdjacentHTML('beforeend', `
-    <div class="athletes-table-actions">
-      <button type="button" class="athletes-table-reset" id="athletes-table-reset">Reinitialiser filtres et tri</button>
-    </div>
-  `)
-
-  const athletesTable = new AthletesTable('#athletes-table-root', rawData, filters)
-  const defaultFilters = { ...filters }
-
-  const dateSelect = section.querySelector('#athletes-table-filter-date')
-
-  const getAvailableDates = () => {
-    const available = rawData.filter(row => {
-      const countryMatch = filters.country === TOUS || row.country === filters.country
-      const sexMatch = filters.sex === TOUS || row.athlete_sex === filters.sex
-      const disciplineMatch = filters.discipline === TOUS || row.discipline === filters.discipline
-      return countryMatch && sexMatch && disciplineMatch
-    })
-
-    return Array.from(new Set(available.map(row => row.medal_date))).sort((a, b) => a.localeCompare(b))
-  }
-
-  const refreshDateOptions = () => {
-    const availableDates = getAvailableDates()
-
-    dateSelect.innerHTML = availableDates
-      .map(date => `<option value="${date}">${date}</option>`)
-      .join('')
-
-    if (!availableDates.length) {
-      filters.date = ''
-      athletesTable.setFilters(filters)
-      return
-    }
-
-    if (!availableDates.includes(filters.date)) {
-      filters.date = availableDates[0]
-    }
-
-    dateSelect.value = filters.date
-    athletesTable.setFilters(filters)
-  }
-
-  refreshDateOptions()
-
-  filterConfig.forEach(cfg => {
-    const select = section.querySelector(`#athletes-table-filter-${cfg.key}`)
-    if (!select) return
-
-    select.value = filters[cfg.key]
-    select.addEventListener('change', event => {
-      filters[cfg.key] = event.target.value
-
-      if (cfg.key !== 'date') {
-        refreshDateOptions()
-        return
-      }
-
-      athletesTable.setFilters(filters)
-    })
-  })
-
-  const resetButton = section.querySelector('#athletes-table-reset')
-  if (resetButton) {
-    resetButton.addEventListener('click', () => {
-      filters.country = defaultFilters.country
-      filters.sex = defaultFilters.sex
-      filters.discipline = defaultFilters.discipline
-      filters.date = defaultFilters.date
-
-      section.querySelector('#athletes-table-filter-country').value = filters.country
-      section.querySelector('#athletes-table-filter-sex').value = filters.sex
-      section.querySelector('#athletes-table-filter-discipline').value = filters.discipline
-
-      refreshDateOptions()
-      athletesTable.resetSort()
-    })
-  }
+  const athletesTable = new AthletesTable('#athletes-table-root', rawData, { date: defaultDate })
 
   athletesTable.setExternalDate = nextDate => {
     if (!nextDate) return
-
-    const optionValues = Array.from(dateSelect.options).map(option => option.value)
-    if (!optionValues.includes(nextDate)) {
-      dateSelect.insertAdjacentHTML('beforeend', `<option value="${nextDate}">${nextDate}</option>`)
-    }
-
-    filters.date = nextDate
-    dateSelect.value = nextDate
-    athletesTable.setFilters(filters)
+    athletesTable.setFilters({ date: nextDate })
   }
 
   return athletesTable
@@ -436,7 +328,6 @@ export class AthletesTable {
 
   renderShell () {
     this.root.html('')
-    this.root.append('p').attr('class', 'athletes-table-summary')
 
     const table = this.root.append('div')
       .attr('class', 'athletes-table-wrapper')
@@ -459,16 +350,6 @@ export class AthletesTable {
   render () {
     const rows = this.buildRows()
 
-    const multiMedalAthletes = rows.filter(row => row.total_medals_all_games > 1).length
-    const athletesLabel = rows.length > 1 ? 'athletes affiches' : 'athlete affiche'
-    let summaryText = `${rows.length} ${athletesLabel}`
-
-    if (multiMedalAthletes > 0) {
-      const multiAthleteLabel = multiMedalAthletes > 1 ? 'athletes' : 'athlete'
-      summaryText += ` | ${multiMedalAthletes} ${multiAthleteLabel} avec plus d'une médaille au total`
-    }
-
-    this.root.select('.athletes-table-summary').text(summaryText)
     this.updateSortIndicators()
 
     const tableRows = this.root.select('tbody')

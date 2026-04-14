@@ -1,71 +1,9 @@
 #athletes-table-section {
   width: 100%;
-  padding: 24px 0 32px;
+  padding: 0;
   box-sizing: border-box;
 }
 
-.athletes-table-controls {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(140px, 1fr));
-  gap: 10px;
-  margin: 0 0 14px;
-}
-
-.athletes-table-control {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.athletes-table-control label {
-  font-size: 12px;
-  font-weight: 600;
-  color: #1e293b;
-}
-
-.athletes-table-control select {
-  border: 1px solid #bcc4ce;
-  border-radius: 4px;
-  padding: 6px 8px;
-  font-size: 13px;
-  color: #0f172a;
-  background: #ffffff;
-}
-
-.athletes-table-actions {
-  display: flex;
-  align-items: end;
-}
-
-.athletes-table-reset {
-  border: 1px solid #bcc4ce;
-  border-radius: 4px;
-  padding: 7px 10px;
-  font-size: 13px;
-  color: #0f172a;
-  background: #ffffff;
-  cursor: pointer;
-}
-
-.athletes-table-reset:hover {
-  background: #f2f6fc;
-}
-
-.athletes-table-title {
-  font-size: 1.75rem;
-  letter-spacing: -0.5px;
-  text-align: center;
-  margin: 0 0 4px;
-  color: var(--text-h);
-  margin-bottom: 25px;
-}
-
-.athletes-table-summary {
-  margin: 0 0 10px;
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: #1f2937;
-}
 
 .athletes-table-wrapper {
   border: 1px solid #c6ced9;
@@ -79,8 +17,8 @@
 .athletes-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 760px;
-  font-size: 13px;
+  min-width: 500px;
+  font-size: 11px;
 }
 
 .athletes-table thead th {
@@ -176,18 +114,3 @@
   background: #f2e1d2;
 }
 
-@media (max-width: 920px) {
-  .athletes-table-controls {
-    grid-template-columns: repeat(2, minmax(130px, 1fr));
-  }
-
-  .athletes-table-actions {
-    grid-column: 1 / -1;
-  }
-}
-
-@media (max-width: 620px) {
-  .athletes-table-controls {
-    grid-template-columns: 1fr;
-  }
-}

@@ -37,6 +37,8 @@ export async function loadDailyData () {
  */
 export function buildDailyData(genderFilter) {
   if (!rawDailyCache) return []
+
+  const allDates = Array.from(new Set(rawDailyCache.filter(d => d.type === 'Gold').map(d => d.date))).sort()
   
   let goldOnly = rawDailyCache.filter(d => d.type === 'Gold')
   if (genderFilter) {
@@ -52,14 +54,16 @@ export function buildDailyData(genderFilter) {
   })
 
   const byDate = d3.group(unique, d => d.date)
-  const sorted = Array.from(byDate.entries())
-    .map(([dateStr, rows]) => ({
+  
+  const sorted = allDates.map(dateStr => {
+    const rows = byDate.get(dateStr) || []
+    return {
       date:   new Date(dateStr + 'T00:00:00'),
       dateStr,
       count:  rows.length,
       events: rows.map(r => ({ event: r.event, discipline: r.discipline, country: r.country, code: r.code }))
-    }))
-    .sort((a, b) => a.date - b.date)
+    }
+  }).sort((a, b) => a.date - b.date)
 
   return sorted
 }
@@ -75,7 +79,7 @@ export function buildDailyData(genderFilter) {
  * @param {Function} onDateSelect Callback(dateObj, dayData, index, total) when selection changes
  * @returns {{ prev, next, goTo }} Navigation controls
  */
-export function renderDailyMedalChart (containerId, data, onDateSelect) {
+export function renderDailyMedalChart (containerId, data, onDateSelect, options = {}) {
   const container = document.querySelector(containerId)
   if (!container) return {}
 
@@ -278,7 +282,7 @@ export function renderDailyMedalChart (containerId, data, onDateSelect) {
     })
 
   // ── Initial selection ─────────────────────────────────────────
-  selectIndex(0)
+  selectIndex(options.initialIndex || 0)
 
   // ── Return navigation controls ───────────────────────────────
   return {
