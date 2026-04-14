@@ -11,6 +11,11 @@ const ASSET_BASE = `${import.meta.env.BASE_URL}assets`
  * "Unique" means one row per (date × event), so relay teams don't inflate counts.
  * @returns {Promise<Array<{date: Date, count: number, events: string[]}>>}
  */
+let rawDailyCache = null
+
+/**
+ * Loads medals.csv and caches it for daily counts.
+ */
 export async function loadDailyData () {
   const raw = await d3.csv(`${ASSET_BASE}/data/medals.csv`, d => ({
     type:         d.medal_type.trim(),
@@ -19,10 +24,25 @@ export async function loadDailyData () {
     discipline:   d.discipline.trim(),
     discipline_code: d.discipline_code.trim(),
     country:      d.country.trim(),
-    code:         d.country_code.trim()
+    code:         d.country_code.trim(),
+    sex:          d.athlete_sex.trim()
   }))
 
-  const goldOnly = raw.filter(d => d.type === 'Gold')
+  rawDailyCache = raw
+  return buildDailyData(null)
+}
+
+/**
+ * Re-builds the daily events data, filtering by gender optionally.
+ */
+export function buildDailyData(genderFilter) {
+  if (!rawDailyCache) return []
+  
+  let goldOnly = rawDailyCache.filter(d => d.type === 'Gold')
+  if (genderFilter) {
+    goldOnly = goldOnly.filter(d => d.sex === genderFilter)
+  }
+
   const seen = new Set()
   const unique = goldOnly.filter(d => {
     const key = `${d.date}||${d.event}`

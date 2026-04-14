@@ -1,0 +1,40 @@
+.gender-pie-svg {
+  display: block;
+  margin: 0 auto;
+}
+
+.gender-slice {
+  transition: opacity 0.3s ease, fill 0.3s ease, filter 0.3s ease;
+  stroke: #ffffff;
+  stroke-width: 1px;
+}
+
+.gender-slice:hover {
+  filter: brightness(0.95);
+}
+
+.gender-label-text {
+  font-family: inherit;
+  font-size: 13px;
+  fill: #333;
+  pointer-events: bounding-box;
+  transition: opacity 0.3s ease;
+}
+
+.gender-legend-label {
+  font-family: inherit;
+  font-size: 13px;
+  fill: #555;
+  transition: opacity 0.3s ease;
+}
+
+.gender-legend-item {
+  transition: opacity 0.3s ease;
+}
+
+/* Dimming effect when a slice is selected */
+.gender-slice.dimmed,
+.gender-label-text.dimmed,
+.gender-legend-item.dimmed {
+  opacity: 0.25;
+}

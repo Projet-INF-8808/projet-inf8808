@@ -1,14 +1,16 @@
-import './style.css'
-import './charts/medalChart.css'
 import './charts/athletesTable.css'
-import { loadAthletesTableMedalsData, initAthletesTable } from './charts/athletesTable.js'
-import './charts/dailyMedalChart.css'
+import { initAthletesTable, loadAthletesTableMedalsData } from './charts/athletesTable.js'
 import './charts/countryDailyMedalChart.css'
+import './charts/dailyMedalChart.css'
+import './charts/genderPieChart.css'
+import './charts/medalChart.css'
+import './style.css'
 
-import { loadData, renderMedalChart }           from './charts/medalChart.js'
-import { loadDailyData, renderDailyMedalChart } from './charts/dailyMedalChart.js'
-import { loadCountryDailyMedalData, renderCountryDailyMedalChart } from './charts/countryDailyMedalChart.js'
 import * as d3 from 'd3'
+import { loadCountryDailyMedalData, renderCountryDailyMedalChart } from './charts/countryDailyMedalChart.js'
+import { buildDailyData, loadDailyData, renderDailyMedalChart } from './charts/dailyMedalChart.js'
+import { loadGenderData, renderGenderPieChart } from './charts/genderPieChart.js'
+import { computeMedalTotals, loadData, renderMedalChart } from './charts/medalChart.js'
 
 const ASSET_BASE = `${import.meta.env.BASE_URL}assets`
 
@@ -55,6 +57,19 @@ document.querySelector('#app').innerHTML = `
     <!-- ══════════════════════════════════════════════
       SECTION DIVIDER
     ══════════════════════════════════════════════ -->
+  <div class="section-divider" aria-hidden="true"></div>
+
+    <!-- ══════════════════════════════════════════════
+      SECTION 2 — Gender pie chart
+    ══════════════════════════════════════════════ -->
+  <section id="section-viz2" class="page-section" aria-label="Répartition par genre">
+    <div class="section-header">
+      <h2 class="section-title">Répartition selon le genre</h2>
+      <p class="section-subtitle">Participation proportionnelle par catégorie</p>
+    </div>
+    <div id="gender-pie-wrapper"></div>
+  </section>
+
   <div class="section-divider" aria-hidden="true"></div>
 
   <div id="medal-tooltip" role="tooltip"></div>
@@ -174,6 +189,44 @@ document.querySelector('#app').innerHTML = `
 `
 
 // ─────────────────────────────────────────────────────────────
+//  GLOBAL STATE
+// ─────────────────────────────────────────────────────────────
+let globalGenderFilter = null
+let pieControls = null
+let dailyChartControls = null
+
+function updateAllVisualizations () {
+  if (pieControls) {
+    pieControls.updateSelection(globalGenderFilter)
+  }
+
+  const filteredMedalData = computeMedalTotals(globalGenderFilter)
+  renderMedalChart('#medal-chart-wrapper', filteredMedalData)
+
+  const sexSelect = document.querySelector('#athletes-table-filter-sex')
+  if (sexSelect) {
+    const map = { M: 'Homme', W: 'Femme', X: 'Mixte', O: 'Autre' }
+    sexSelect.value = globalGenderFilter ? map[globalGenderFilter] : 'Tous'
+    sexSelect.dispatchEvent(new Event('change'))
+  }
+
+  const filteredDailyData = buildDailyData(globalGenderFilter)
+  dailyChartControls = renderDailyMedalChart(
+    '#daily-chart-wrapper',
+    filteredDailyData,
+    (_date, dayData, index, total) => {
+      renderDetailPanel(dayData)
+      updateNavUI(index, total, dayData)
+    }
+  )
+}
+
+function handleGenderSelect (gender) {
+  globalGenderFilter = (globalGenderFilter === gender) ? null : gender
+  updateAllVisualizations()
+}
+
+// ─────────────────────────────────────────────────────────────
 //  VIZ 1 — Medal bar chart
 // ─────────────────────────────────────────────────────────────
 loadData()
@@ -182,8 +235,19 @@ loadData()
   })
   .catch(err => {
     console.error('Viz 1 – erreur :', err)
-    document.querySelector('#medal-chart-wrapper').innerHTML =
-      '<p style="color:red;text-align:center">Erreur lors du chargement des données.</p>'
+    document.querySelector('#medal-chart-wrapper').innerHTML = '<p style="color:red;text-align:center">Erreur lors du chargement des données.</p>'
+  })
+
+// ─────────────────────────────────────────────────────────────
+//  VIZ 2 — Gender Pie Chart
+// ─────────────────────────────────────────────────────────────
+loadGenderData()
+  .then(data => {
+    pieControls = renderGenderPieChart('#gender-pie-wrapper', data, handleGenderSelect)
+  })
+  .catch(err => {
+    console.error('Viz 2 – erreur :', err)
+    document.querySelector('#gender-pie-wrapper').innerHTML = '<p style="color:red;text-align:center">Erreur lors du chargement des données.</p>'
   })
 
 // ─────────────────────────────────────────────────────────────
@@ -263,13 +327,14 @@ loadDailyData()
       }
     )
 
-    btnPrev.addEventListener('click', () => dailyControls.prev())
-    btnNext.addEventListener('click', () => dailyControls.next())
+    btnPrev.onclick = () => { if (dailyChartControls) dailyChartControls.prev() }
+    btnNext.onclick = () => { if (dailyChartControls) dailyChartControls.next() }
 
-    document.addEventListener('keydown', e => {
-      if (e.key === 'ArrowLeft') dailyControls.prev()
-      if (e.key === 'ArrowRight') dailyControls.next()
-    })
+    document.onkeydown = e => {
+      if (!dailyChartControls) return
+      if (e.key === 'ArrowLeft') dailyChartControls.prev()
+      if (e.key === 'ArrowRight') dailyChartControls.next()
+    }
   })
   .catch(err => {
     console.error('Viz 5 – erreur :', err)
