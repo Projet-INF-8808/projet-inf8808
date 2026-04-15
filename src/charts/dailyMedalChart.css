@@ -96,7 +96,7 @@
   position: relative;
   min-height: 0;
   width: 100%;
-  overflow: hidden;
+  overflow: visible;
 }
 
 /* ── Chart wrappers (grow to fill remaining left-column height) ── */

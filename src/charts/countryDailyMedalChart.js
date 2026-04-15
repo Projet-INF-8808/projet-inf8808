@@ -2,6 +2,10 @@ import * as d3 from 'd3'
 
 const ASSET_BASE = `${import.meta.env.BASE_URL}assets`
 
+// Raw (unfiltered) medals cache — set once by loadCountryDailyMedalData
+let rawMedalsForCountry = null
+let countryNamesCache = null
+
 const MEDAL_KEYS = ['gold', 'silver', 'bronze']
 
 const MEDAL_TYPES = {
@@ -46,7 +50,8 @@ export async function loadCountryDailyMedalData () {
       event: (d.event ?? '').trim(),
       discipline: (d.discipline ?? '').trim(),
       country: (d.country ?? '').trim(),
-      code: (d.country_code ?? '').trim()
+      code: (d.country_code ?? '').trim(),
+      sex: (d.athlete_sex ?? '').trim()
     })),
     d3.csv(`${ASSET_BASE}/data/country_names_french.csv`, d => ({
       code: (d.Code ?? '').trim(),
@@ -54,11 +59,29 @@ export async function loadCountryDailyMedalData () {
     }))
   ])
 
-  const countryMap = new Map(countries.map(country => [country.code, country.label]))
-  const seenMedals = new Set()
+  countryNamesCache = new Map(countries.map(c => [c.code, c.label]))
 
-  const medals = rawMedals
-    .filter(row => row.medalType && row.dateStr && row.code && row.event)
+  // Keep all valid rows (no dedup yet — dedup happens per-query in computeCountryDailyData)
+  rawMedalsForCountry = rawMedals.filter(row => row.medalType && row.dateStr && row.code && row.event)
+
+  return computeCountryDailyData(null)
+}
+
+/**
+ * Re-computes per-country daily medal data with an optional gender filter.
+ * @param {string|null} genderFilter – 'M', 'W', 'X', 'O', or null for all
+ */
+export function computeCountryDailyData (genderFilter) {
+  if (!rawMedalsForCountry || !countryNamesCache) return { countries: [], allDates: OLYMPIC_DATES }
+
+  let rows = rawMedalsForCountry
+  if (genderFilter) {
+    rows = rows.filter(row => row.sex === genderFilter)
+  }
+
+  // Deduplicate per event/country/medal (handles team events)
+  const seenMedals = new Set()
+  const medals = rows
     .filter(row => {
       const key = `${row.dateStr}||${row.code}||${row.event}||${row.medalType}`
       if (seenMedals.has(key)) return false
@@ -67,14 +90,14 @@ export async function loadCountryDailyMedalData () {
     })
     .map(row => ({
       ...row,
-      countryLabel: countryMap.get(row.code) ?? row.country ?? row.code
+      countryLabel: countryNamesCache.get(row.code) ?? row.country ?? row.code
     }))
 
   const allDates = OLYMPIC_DATES
 
-  const byCountry = Array.from(d3.group(medals, row => row.code), ([code, rows]) => {
-    const label = rows[0]?.countryLabel ?? code
-    const byDate = d3.group(rows, row => row.dateStr)
+  const byCountry = Array.from(d3.group(medals, row => row.code), ([code, codeRows]) => {
+    const label = codeRows[0]?.countryLabel ?? code
+    const byDate = d3.group(codeRows, row => row.dateStr)
 
     const daily = allDates.map(dateStr => {
       const dateRows = byDate.get(dateStr) ?? []

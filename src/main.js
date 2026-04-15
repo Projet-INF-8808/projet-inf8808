@@ -4,13 +4,15 @@ import './charts/countryDailyMedalChart.css'
 import './charts/dailyMedalChart.css'
 import './charts/genderPieChart.css'
 import './charts/medalChart.css'
+import './landing.css'
 import './style.css'
 
 import * as d3 from 'd3'
-import { loadCountryDailyMedalData, renderCountryDailyMedalChart } from './charts/countryDailyMedalChart.js'
+import { computeCountryDailyData, loadCountryDailyMedalData, renderCountryDailyMedalChart } from './charts/countryDailyMedalChart.js'
 import { buildDailyData, loadDailyData, renderDailyMedalChart } from './charts/dailyMedalChart.js'
 import { computeGenderData, loadGenderData, renderGenderPieChart } from './charts/genderPieChart.js'
 import { computeMedalTotals, loadData, renderMedalChart } from './charts/medalChart.js'
+import { mountLanding } from './landing.js'
 
 const ASSET_BASE = `${import.meta.env.BASE_URL}assets`
 
@@ -22,6 +24,7 @@ let globalCountryFilter = null
 let globalSelectedDateStr = null
 let globalCumulativeMode = false   // when true, panels show all-time data
 let _suppressModeSwitch  = false   // prevents internal syncs from exiting cumulative mode
+let selectedCountry = null         // currently-selected country for the bar chart
 
 function syncSelectedDate (dateStr, source) {
   if (!dateStr) return
@@ -166,6 +169,9 @@ document.querySelector('#app').innerHTML = `
   </section>
 `
 
+// Mount the landing hero (prepended before chart sections)
+mountLanding()
+
 // ─────────────────────────────────────────────────────────────
 //  PANEL MODE TOGGLE (date vs cumulative)
 // ─────────────────────────────────────────────────────────────
@@ -261,6 +267,16 @@ function updateAllVisualizations () {
     { initialIndex: currentIndex }
   )
   _suppressModeSwitch = false
+
+  // Re-render the country daily bar chart with the new gender filter
+  if (globalCountryFilter) {
+    const newCountryData = computeCountryDailyData(globalGenderFilter)
+    const updatedCountry = newCountryData.countries.find(c => c.code === globalCountryFilter)
+    if (updatedCountry) {
+      selectedCountry = updatedCountry
+      renderCountryDailyCountry(updatedCountry, globalSelectedDateStr)
+    }
+  }
 }
 
 function handleGenderSelect (gender) {
@@ -568,8 +584,6 @@ loadCountryDailyMedalData()
     countrySelect.value = ''
     showLineMode()
 
-    let selectedCountry = null
-
     countrySelect.addEventListener('change', event => {
       const code = event.target.value || null
       globalCountryFilter = code
@@ -596,14 +610,15 @@ loadCountryDailyMedalData()
         }
         return
       }
-      selectedCountry = data.countries.find(c => c.code === code) ?? null
+      const currentDateStr = navDate.textContent !== '—'
+        ? dailyDateIndex
+            ? [...dailyDateIndex.entries()].find(([, i]) => i === dailyControls?.getIndex())?.[0]
+            : null
+        : null
+      // Always resolve via computeCountryDailyData so the active gender filter is applied
+      const filteredCountryData = computeCountryDailyData(globalGenderFilter)
+      selectedCountry = filteredCountryData.countries.find(c => c.code === code) ?? null
       if (selectedCountry) {
-        // Pass the currently-selected line-chart date to the bar chart
-        const currentDateStr = navDate.textContent !== '—'
-          ? dailyDateIndex
-              ? [...dailyDateIndex.entries()].find(([, i]) => i === dailyControls?.getIndex())?.[0]
-              : null
-          : null
         renderCountryDailyCountry(selectedCountry, currentDateStr)
       }
     })

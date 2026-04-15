@@ -323,3 +323,18 @@ code {
     border-right-color: var(--border);
   }
 }
+
+/* Allow the landing hero's full-bleed breakout */
+#app {
+  overflow-x: clip;
+}
+
+/* Add spacing between the landing hero and the first chart section */
+#landing-hero + .page-section,
+#landing-hero ~ * .page-section:first-of-type {
+  margin-top: 0;
+}
+
+.page-section {
+  padding-top: 48px;
+}

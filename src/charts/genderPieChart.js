@@ -47,10 +47,11 @@ export function renderGenderPieChart (containerId, data, onSelect) {
   const container = document.querySelector(containerId)
   if (!container) return
   
-  const width = 340
-  const height = 180
-  const margin = 25
-  const radius = Math.min(width, height) / 2 - margin
+  const width = 500
+  const height = 220
+  const radius = 60
+  const cx = 145     // pie center x — leaves 65px on the left for labels
+  const cy = 110     // pie center y — centred vertically
 
   d3.select(containerId).selectAll('svg').remove()
 
@@ -63,7 +64,7 @@ export function renderGenderPieChart (containerId, data, onSelect) {
     .attr('class', 'gender-pie-svg')
 
   const g = svg.append('g')
-    .attr('transform', `translate(100, ${height / 2})`)
+    .attr('transform', `translate(${cx}, ${cy})`)
 
   const pie = d3.pie()
     .value(d => d.count)
@@ -73,10 +74,11 @@ export function renderGenderPieChart (containerId, data, onSelect) {
     .innerRadius(0)
     .outerRadius(radius)
 
-  // Arc for labels positioning
+  // Arc for labels positioning — 20px outside the slice edge
+  const labelRadius = radius + 20
   const outerArc = d3.arc()
-    .innerRadius(radius + 15)
-    .outerRadius(radius + 15)
+    .innerRadius(labelRadius)
+    .outerRadius(labelRadius)
 
   const pieData = pie(data)
 
@@ -133,7 +135,7 @@ export function renderGenderPieChart (containerId, data, onSelect) {
   // ── LEGEND ───────────────────────────────────────────────────
   const legendGroup = svg.append('g')
     .attr('class', 'gender-legend-group')
-    .attr('transform', `translate(250, ${(height / 2) - (data.length * 25) / 2 + 10})`)
+    .attr('transform', `translate(350, ${cy - (data.length * 25) / 2 + 10})`)
   
   const legendSpaceY = 25
 
