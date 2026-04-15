@@ -35,8 +35,13 @@ function syncSelectedDate (dateStr, source) {
   // When cumulative mode is on, panels ignore the selected date
   const effectiveDateStr = globalCumulativeMode ? null : dateStr
 
-  if (athletesTableController?.setExternalDate) {
-    athletesTableController.setExternalDate(effectiveDateStr)
+  if (athletesTableController?.setExternalFilters) {
+    athletesTableController.setExternalFilters({
+      dateStr:     effectiveDateStr,
+      countryCode: globalCountryFilter,
+      sexCode:     globalGenderFilter,
+      cumulative:  globalCumulativeMode
+    })
   }
 
   if (source !== 'viz5' && dailyControls?.goTo && dailyDateIndex.has(dateStr)) {
@@ -185,8 +190,13 @@ function applyPanelMode () {
   const newPieData = computeGenderData(effectiveDateStr, globalCountryFilter)
   pieControls = renderGenderPieChart('#gender-pie-wrapper', newPieData, handleGenderSelect)
   if (pieControls && globalGenderFilter) pieControls.updateSelection(globalGenderFilter)
-  if (athletesTableController?.setExternalDate) {
-    athletesTableController.setExternalDate(effectiveDateStr)
+  if (athletesTableController?.setExternalFilters) {
+    athletesTableController.setExternalFilters({
+      dateStr:     effectiveDateStr,
+      countryCode: globalCountryFilter,
+      sexCode:     globalGenderFilter,
+      cumulative:  globalCumulativeMode
+    })
   }
   // Hide the red selection band on the country bar chart in cumulative mode
   if (globalCumulativeMode) {

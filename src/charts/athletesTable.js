@@ -152,9 +152,33 @@ export function initAthletesTable (sectionSelector, rawData) {
 
   const athletesTable = new AthletesTable('#athletes-table-root', rawData, { date: defaultDate })
 
+  // Called by main.js whenever the selected date, country, sex, or mode changes.
+  // Pass null for dateStr in cumulative mode (no date filter).
+  // Pass null for countryCode / sexCode to clear those filters.
+  athletesTable.setExternalFilters = ({ dateStr, countryCode, sexCode, cumulative }) => {
+    const nextFilters = {}
+
+    // date: '' means no date filter (cumulative), a string means filter to that date
+    if (cumulative === true) {
+      nextFilters.date = ''
+    } else if (dateStr !== undefined) {
+      nextFilters.date = dateStr ?? ''
+    }
+
+    if (countryCode !== undefined) {
+      nextFilters.country_code = countryCode ?? TOUS
+    }
+
+    if (sexCode !== undefined) {
+      nextFilters.sex = sexCode ? (SEX_MAP[sexCode] ?? TOUS) : TOUS
+    }
+
+    athletesTable.setFilters(nextFilters)
+  }
+
+  // Legacy shim kept for compatibility
   athletesTable.setExternalDate = nextDate => {
-    if (!nextDate) return
-    athletesTable.setFilters({ date: nextDate })
+    athletesTable.setExternalFilters({ dateStr: nextDate ?? '' })
   }
 
   return athletesTable
@@ -283,12 +307,12 @@ export class AthletesTable {
   }
 
   buildRows () {
-    const { date, country, sex, discipline } = this.filters
+    const { date, country_code, sex, discipline } = this.filters
 
     const filtered = this.rawData.filter(row => {
-      const dateMatch = !date || row.medal_date === date
-      const countryMatch = country === TOUS || row.country === country
-      const sexMatch = sex === TOUS || row.athlete_sex === sex
+      const dateMatch    = !date         || row.medal_date      === date
+      const countryMatch = !country_code || country_code === TOUS || row.country_code === country_code
+      const sexMatch     = sex === TOUS  || row.athlete_sex     === sex
       const disciplineMatch = discipline === TOUS || row.discipline === discipline
       return dateMatch && countryMatch && sexMatch && disciplineMatch
     })

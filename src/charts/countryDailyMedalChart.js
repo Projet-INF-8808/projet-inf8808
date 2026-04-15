@@ -130,12 +130,13 @@ export function renderCountryDailyMedalChart (containerSelector, countryData, op
 
   d3.select(container).selectAll('svg').remove()
 
-  const containerWidth = container.getBoundingClientRect().width || 800
+  const containerWidth  = container.getBoundingClientRect().width  || 800
+  const containerHeight = container.getBoundingClientRect().height || 340
   const margin = { top: 24, right: 128, bottom: 58, left: 56 }
-  const width = containerWidth
-  const height = 340
-  const innerW = width - margin.left - margin.right
-  const innerH = height - margin.top - margin.bottom
+  const width  = containerWidth
+  const height = Math.max(containerHeight, 200)
+  const innerW = width  - margin.left - margin.right
+  const innerH = height - margin.top  - margin.bottom
 
   const xScale = d3.scaleBand()
     .domain(chartData.map(day => day.dateStr))
@@ -155,7 +156,7 @@ export function renderCountryDailyMedalChart (containerSelector, countryData, op
     .attr('viewBox', `0 0 ${width} ${height}`)
     .attr('preserveAspectRatio', 'xMidYMid meet')
     .style('width', '100%')
-    .style('height', 'auto')
+    .style('height', '100%')
     .attr('role', 'img')
     .attr('aria-label', `Médailles quotidiennes pour ${countryData.label}`)
 
