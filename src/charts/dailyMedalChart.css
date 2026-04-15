@@ -2,20 +2,21 @@
    Daily Medal Chart — Visualisation 5
    ══════════════════════════════════════════════════════════════ */
 
-/* ── Country selector row (above the two-column layout) ─────── */
+/* ── Country selector row (inside the left column) ──────────── */
 .daily-country-selector-row {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   gap: 16px;
-  flex-wrap: wrap;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
   flex-shrink: 0;
+  flex-wrap: nowrap;
 }
 
 /* ── Main 2-col layout: chart left, panels right ─────────────── */
 .viz5-main-layout {
   display: grid;
   grid-template-columns: 7fr 4fr;
+  grid-template-rows: 1fr;    /* single row fills the grid container's height */
   gap: 24px;
   align-items: stretch;
   width: 100%;
@@ -36,6 +37,55 @@
   min-height: 0;
 }
 
+/* ── Panels mode toggle ──────────────────────────────────────── */
+.panels-mode-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;   /* right-align in the shared control row */
+  white-space: nowrap;
+}
+
+.panels-mode-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text, #6b6375);
+  white-space: nowrap;
+}
+
+.mode-pill {
+  display: flex;
+  background: var(--border, #e5e4e7);
+  border-radius: 20px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.mode-tab {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  padding: 4px 12px;
+  border-radius: 18px;
+  border: none;
+  background: transparent;
+  color: var(--text, #6b6375);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mode-tab.is-active {
+  background: var(--bg, #fff);
+  color: var(--accent, #aa3bff);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.mode-tab:not(.is-active):hover {
+  color: var(--text-h, #08060d);
+}
+
 /* ── Pie-chart panel body ────────────────────────────────────── */
 .side-panel-pie {
   padding: 8px 4px;
@@ -46,6 +96,7 @@
   position: relative;
   min-height: 0;
   width: 100%;
+  overflow: hidden;
 }
 
 /* ── Chart wrappers (grow to fill remaining left-column height) ── */

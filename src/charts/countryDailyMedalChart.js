@@ -346,6 +346,9 @@ export function renderCountryDailyMedalChart (containerSelector, countryData, op
     selectDate: dateStr => {
       if (!dateStr || !xScale.domain().includes(dateStr)) return
       updateSelectedBand(dateStr)
+    },
+    hideSelection: () => {
+      selectedBand.style('display', 'none')
     }
   }
 }

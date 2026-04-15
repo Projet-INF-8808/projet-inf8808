@@ -58,8 +58,8 @@ export function renderGenderPieChart (containerId, data, onSelect) {
     .append('svg')
     .attr('viewBox', `0 0 ${width} ${height}`)
     .attr('preserveAspectRatio', 'xMidYMid meet')
-    .style('width', '100%')
-    .style('height', '100%')
+    .style('width', null)
+    .style('height', null)
     .attr('class', 'gender-pie-svg')
 
   const g = svg.append('g')

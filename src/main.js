@@ -20,13 +20,23 @@ let dailyDateIndex = new Map()
 let countryDailyChartControls = null
 let globalCountryFilter = null
 let globalSelectedDateStr = null
+let globalCumulativeMode = false   // when true, panels show all-time data
+let _suppressModeSwitch  = false   // prevents internal syncs from exiting cumulative mode
 
 function syncSelectedDate (dateStr, source) {
   if (!dateStr) return
   globalSelectedDateStr = dateStr
 
+  // Any chart interaction exits cumulative mode (unless suppressed by internal sync)
+  if (!_suppressModeSwitch && globalCumulativeMode) {
+    switchToDailyMode()
+  }
+
+  // When cumulative mode is on, panels ignore the selected date
+  const effectiveDateStr = globalCumulativeMode ? null : dateStr
+
   if (athletesTableController?.setExternalDate) {
-    athletesTableController.setExternalDate(dateStr)
+    athletesTableController.setExternalDate(effectiveDateStr)
   }
 
   if (source !== 'viz5' && dailyControls?.goTo && dailyDateIndex.has(dateStr)) {
@@ -34,10 +44,13 @@ function syncSelectedDate (dateStr, source) {
   }
 
   if (source !== 'viz6' && countryDailyChartControls?.selectDate) {
-    countryDailyChartControls.selectDate(dateStr)
+    // Only update the selection band when not in cumulative mode
+    if (!globalCumulativeMode) {
+      countryDailyChartControls.selectDate(dateStr)
+    }
   }
 
-  const newPieData = computeGenderData(dateStr, globalCountryFilter)
+  const newPieData = computeGenderData(effectiveDateStr, globalCountryFilter)
   pieControls = renderGenderPieChart('#gender-pie-wrapper', newPieData, handleGenderSelect)
   if (pieControls && globalGenderFilter) {
     pieControls.updateSelection(globalGenderFilter)
@@ -84,15 +97,22 @@ document.querySelector('#app').innerHTML = `
     <!-- 2-col grid: chart left, panels right -->
     <div class="viz5-main-layout">
 
-      <!-- LEFT : line/bar chart + arrow nav -->
+      <!-- LEFT : selector row + line/bar chart + arrow nav -->
       <div class="viz5-left">
-        <!-- Country selector row (above the chart in the left column) -->
+        <!-- Shared control bar: country selector (left) + mode toggle (right) -->
         <div class="daily-country-selector-row">
           <div class="country-daily-control">
             <label for="country-daily-select">Filtrer par pays</label>
             <select id="country-daily-select"></select>
           </div>
           <div class="country-daily-country" id="country-daily-country"></div>
+          <div class="panels-mode-bar">
+            <span class="panels-mode-label">Affichage&nbsp;:</span>
+            <div class="mode-pill">
+              <button class="mode-tab is-active" id="mode-tab-date">Par journ&eacute;e</button>
+              <button class="mode-tab" id="mode-tab-cumul">Cumulatif</button>
+            </div>
+          </div>
         </div>
 
         <div id="daily-chart-wrapper"></div>
@@ -141,8 +161,55 @@ document.querySelector('#app').innerHTML = `
   </section>
 `
 
+// ─────────────────────────────────────────────────────────────
+//  PANEL MODE TOGGLE (date vs cumulative)
+// ─────────────────────────────────────────────────────────────
+const modeTabDate  = document.getElementById('mode-tab-date')
+const modeTabCumul = document.getElementById('mode-tab-cumul')
 
+function setTimeNavVisible (visible) {
+  const timeNav = document.getElementById('time-nav')
+  if (timeNav) timeNav.style.visibility = visible ? '' : 'hidden'
+}
 
+function switchToDailyMode () {
+  globalCumulativeMode = false
+  modeTabDate.classList.add('is-active')
+  modeTabCumul.classList.remove('is-active')
+  setTimeNavVisible(true)
+}
+
+function applyPanelMode () {
+  setTimeNavVisible(!globalCumulativeMode)
+  const effectiveDateStr = globalCumulativeMode ? null : globalSelectedDateStr
+  const newPieData = computeGenderData(effectiveDateStr, globalCountryFilter)
+  pieControls = renderGenderPieChart('#gender-pie-wrapper', newPieData, handleGenderSelect)
+  if (pieControls && globalGenderFilter) pieControls.updateSelection(globalGenderFilter)
+  if (athletesTableController?.setExternalDate) {
+    athletesTableController.setExternalDate(effectiveDateStr)
+  }
+  // Hide the red selection band on the country bar chart in cumulative mode
+  if (globalCumulativeMode) {
+    countryDailyChartControls?.hideSelection?.()
+  } else if (globalSelectedDateStr) {
+    countryDailyChartControls?.selectDate?.(globalSelectedDateStr)
+  }
+}
+
+modeTabDate.addEventListener('click', () => {
+  if (globalCumulativeMode === false) return
+  globalCumulativeMode = false
+  modeTabDate.classList.add('is-active')
+  modeTabCumul.classList.remove('is-active')
+  applyPanelMode()
+})
+modeTabCumul.addEventListener('click', () => {
+  if (globalCumulativeMode === true) return
+  globalCumulativeMode = true
+  modeTabCumul.classList.add('is-active')
+  modeTabDate.classList.remove('is-active')
+  applyPanelMode()
+})
 
 // ─────────────────────────────────────────────────────────────
 //  GLOBAL STATE
@@ -172,6 +239,7 @@ function updateAllVisualizations () {
   }
 
   const filteredDailyData = buildDailyData(globalGenderFilter)
+  _suppressModeSwitch = true
   dailyControls = renderDailyMedalChart(
     '#daily-chart-wrapper',
     filteredDailyData,
@@ -182,6 +250,7 @@ function updateAllVisualizations () {
     },
     { initialIndex: currentIndex }
   )
+  _suppressModeSwitch = false
 }
 
 function handleGenderSelect (gender) {
@@ -495,7 +564,8 @@ loadCountryDailyMedalData()
       const code = event.target.value || null
       globalCountryFilter = code
       
-      // Update pie chart instantly if there's a stored date bounds
+      // Update pie chart instantly if there's a stored date
+      _suppressModeSwitch = true
       if (globalSelectedDateStr) {
         syncSelectedDate(globalSelectedDateStr, 'viz6')
       } else {
@@ -504,6 +574,7 @@ loadCountryDailyMedalData()
         pieControls = renderGenderPieChart('#gender-pie-wrapper', newPieData, handleGenderSelect)
         if (pieControls && globalGenderFilter) pieControls.updateSelection(globalGenderFilter)
       }
+      _suppressModeSwitch = false
 
       if (!code) {
         selectedCountry = null
