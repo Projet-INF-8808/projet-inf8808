@@ -9,7 +9,7 @@ import './style.css'
 import * as d3 from 'd3'
 import { loadCountryDailyMedalData, renderCountryDailyMedalChart } from './charts/countryDailyMedalChart.js'
 import { buildDailyData, loadDailyData, renderDailyMedalChart } from './charts/dailyMedalChart.js'
-import { loadGenderData, renderGenderPieChart, computeGenderData } from './charts/genderPieChart.js'
+import { computeGenderData, loadGenderData, renderGenderPieChart } from './charts/genderPieChart.js'
 import { computeMedalTotals, loadData, renderMedalChart } from './charts/medalChart.js'
 
 const ASSET_BASE = `${import.meta.env.BASE_URL}assets`
@@ -81,20 +81,20 @@ document.querySelector('#app').innerHTML = `
       </p>
     </div>
 
-    <!-- Country selector row (full width above the 2-col grid) -->
-    <div class="daily-country-selector-row">
-      <div class="country-daily-control">
-        <label for="country-daily-select">Filtrer par pays</label>
-        <select id="country-daily-select"></select>
-      </div>
-      <div class="country-daily-country" id="country-daily-country"></div>
-    </div>
-
     <!-- 2-col grid: chart left, panels right -->
     <div class="viz5-main-layout">
 
       <!-- LEFT : line/bar chart + arrow nav -->
       <div class="viz5-left">
+        <!-- Country selector row (above the chart in the left column) -->
+        <div class="daily-country-selector-row">
+          <div class="country-daily-control">
+            <label for="country-daily-select">Filtrer par pays</label>
+            <select id="country-daily-select"></select>
+          </div>
+          <div class="country-daily-country" id="country-daily-country"></div>
+        </div>
+
         <div id="daily-chart-wrapper"></div>
         <div id="country-daily-chart-wrapper" style="display:none;"></div>
 
@@ -133,8 +133,8 @@ document.querySelector('#app').innerHTML = `
         </div>
 
         <!-- Panel 3 — Détails (athletes table) -->
-        <section id="athletes-table-section" class="side-panel" aria-label="Athlètes avec plusieurs médailles">
-        </section>
+        <div id="athletes-table-section" class="side-panel" aria-label="Athlètes avec plusieurs médailles">
+        </div>
 
       </div>
     </div>

@@ -9,6 +9,7 @@
   gap: 16px;
   flex-wrap: wrap;
   margin-bottom: 20px;
+  flex-shrink: 0;
 }
 
 /* ── Main 2-col layout: chart left, panels right ─────────────── */
@@ -16,18 +17,23 @@
   display: grid;
   grid-template-columns: 7fr 4fr;
   gap: 24px;
-  align-items: start;
+  align-items: stretch;
   width: 100%;
+  flex: 1;        /* grow to fill remaining viewport height */
+  min-height: 0;  /* allow shrinking in a flex parent       */
 }
 
 .viz5-left {
-  min-width: 0; /* prevent overflow */
+  min-width: 0;      /* prevent overflow */
+  display: flex;
+  flex-direction: column;
 }
 
 .viz5-right {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  min-height: 0;
 }
 
 /* ── Pie-chart panel body ────────────────────────────────────── */
@@ -35,10 +41,19 @@
   padding: 8px 4px;
 }
 
-/* ── Chart wrapper ───────────────────────────────────────────── */
-#daily-chart-wrapper {
+#gender-pie-wrapper {
+  flex: 1;
+  position: relative;
+  min-height: 0;
   width: 100%;
-  flex-shrink: 0;
+}
+
+/* ── Chart wrappers (grow to fill remaining left-column height) ── */
+#daily-chart-wrapper,
+#country-daily-chart-wrapper {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
 }
 
 /* ── Line chart elements ─────────────────────────────────────── */
@@ -208,6 +223,8 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-height: 0;
 }
 
 .side-panel-header {
@@ -231,6 +248,10 @@
 .side-panel-body {
   padding: 10px 12px;
   flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Placeholder state */
@@ -327,11 +348,6 @@
   flex-shrink: 0;
 }
 
-/* Athletes-table panel: constrain height so it scrolls instead of pushing layout */
-#athletes-table-section.side-panel {
-  max-height: 200px;
-  overflow-y: auto;
-}
 
 
 /* Responsive: stack on small screens */
@@ -365,11 +381,27 @@
   .side-panel-header {
     background: var(--bg, #16171d);
   }
-}/* ── Page sections ────────────────────────────────────────── */
+}
+
+/* ── Page sections ────────────────────────────────────────── */
 .page-section {
   width: 100%;
   padding: 48px 0 56px;
   box-sizing: border-box;
+}
+
+/* Viz5 section: fill exactly one viewport, like the medal chart */
+#section-viz5 {
+  height: 100dvh;
+  padding: 32px 0 24px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Keep the header non-shrinkable inside the flex column */
+#section-viz5 .section-header {
+  flex-shrink: 0;
 }
 
 .section-header {
@@ -415,6 +447,7 @@
   justify-content: center;
   gap: 16px;
   margin: 8px 0 0;
+  flex-shrink: 0;
 }
 
 .time-nav-btn {

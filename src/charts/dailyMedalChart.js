@@ -83,11 +83,12 @@ export function renderDailyMedalChart (containerId, data, onDateSelect, options 
   const container = document.querySelector(containerId)
   if (!container) return {}
 
-  const containerW = container.getBoundingClientRect().width || 800
+  const containerW = container.getBoundingClientRect().width  || 800
+  const containerH = container.getBoundingClientRect().height || 300
 
   const margin = { top: 28, right: 32, bottom: 56, left: 56 }
   const width  = containerW
-  const height = 300
+  const height = Math.max(containerH, 200)   // fill the flex cell, min 200px
   const innerW = width  - margin.left - margin.right
   const innerH = height - margin.top  - margin.bottom
 
@@ -110,7 +111,7 @@ export function renderDailyMedalChart (containerId, data, onDateSelect, options 
     .attr('viewBox', `0 0 ${width} ${height}`)
     .attr('preserveAspectRatio', 'xMidYMid meet')
     .style('width', '100%')
-    .style('height', 'auto')
+    .style('height', '100%')
     .attr('role', 'img')
     .attr('aria-label', "Graphique des événements médaillés par jour")
 

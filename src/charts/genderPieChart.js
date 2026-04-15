@@ -47,9 +47,9 @@ export function renderGenderPieChart (containerId, data, onSelect) {
   const container = document.querySelector(containerId)
   if (!container) return
   
-  const width = container.getBoundingClientRect().width || 280
-  const height = 240
-  const margin = 35
+  const width = 340
+  const height = 180
+  const margin = 25
   const radius = Math.min(width, height) / 2 - margin
 
   d3.select(containerId).selectAll('svg').remove()
@@ -59,11 +59,11 @@ export function renderGenderPieChart (containerId, data, onSelect) {
     .attr('viewBox', `0 0 ${width} ${height}`)
     .attr('preserveAspectRatio', 'xMidYMid meet')
     .style('width', '100%')
-    .style('height', 'auto')
+    .style('height', '100%')
     .attr('class', 'gender-pie-svg')
 
   const g = svg.append('g')
-    .attr('transform', `translate(${width / 2}, ${(height / 2) - 20})`)
+    .attr('transform', `translate(100, ${height / 2})`)
 
   const pie = d3.pie()
     .value(d => d.count)
@@ -133,16 +133,15 @@ export function renderGenderPieChart (containerId, data, onSelect) {
   // ── LEGEND ───────────────────────────────────────────────────
   const legendGroup = svg.append('g')
     .attr('class', 'gender-legend-group')
-    .attr('transform', `translate(${width / 2}, ${height - 15})`)
+    .attr('transform', `translate(250, ${(height / 2) - (data.length * 25) / 2 + 10})`)
   
-  const legendSpace = 75
-  const startX = -((data.length * legendSpace) / 2) + (legendSpace / 2) - 10
+  const legendSpaceY = 25
 
   const legendItems = legendGroup.selectAll('.gender-legend-item')
     .data(data)
     .join('g')
     .attr('class', 'gender-legend-item')
-    .attr('transform', (d, i) => `translate(${startX + i * legendSpace}, 0)`)
+    .attr('transform', (d, i) => `translate(0, ${i * legendSpaceY})`)
     .attr('data-key', d => d.key)
     .on('click', function (event, d) {
       if (onSelect) onSelect(d.key)

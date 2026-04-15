@@ -173,14 +173,14 @@ export class AthletesTable {
     }
 
     this.columns = [
-      { key: 'athlete_name', label: 'Athlete', type: 'text', sortable: true },
-      { key: 'country', label: 'Pays', type: 'text', sortable: true },
-      { key: 'athlete_sex', label: 'Sexe', type: 'text', sortable: true },
+      { key: 'athlete_name', label: 'Athlete', type: 'text', sortable: false },
+      { key: 'country', label: 'Pays', type: 'text', sortable: false },
+      { key: 'athlete_sex', label: 'Sexe', type: 'text', sortable: false },
       { key: 'medals_on_selected_day', label: 'Médailles (jour)', type: 'number', sortable: false },
-      { key: 'total_medals_all_games', label: 'Total médailles', type: 'number', sortable: true },
-      { key: 'gold_total', label: 'Or', type: 'number', sortable: true },
-      { key: 'silver_total', label: 'Argent', type: 'number', sortable: true },
-      { key: 'bronze_total', label: 'Bronze', type: 'number', sortable: true }
+      { key: 'total_medals_all_games', label: 'Total médailles', type: 'number', sortable: false },
+      { key: 'gold_total', label: 'Or', type: 'number', sortable: false },
+      { key: 'silver_total', label: 'Argent', type: 'number', sortable: false },
+      { key: 'bronze_total', label: 'Bronze', type: 'number', sortable: false }
     ]
     this.sortState = null
 
