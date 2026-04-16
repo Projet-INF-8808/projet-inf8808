@@ -4,6 +4,7 @@ import './charts/countryDailyMedalChart.css'
 import './charts/dailyMedalChart.css'
 import './charts/genderPieChart.css'
 import './charts/medalChart.css'
+import './charts/sportsPictogram.css'
 import './landing.css'
 import './style.css'
 
@@ -12,12 +13,14 @@ import { computeCountryDailyData, loadCountryDailyMedalData, renderCountryDailyM
 import { buildDailyData, loadDailyData, renderDailyMedalChart } from './charts/dailyMedalChart.js'
 import { computeGenderData, loadGenderData, renderGenderPieChart } from './charts/genderPieChart.js'
 import { computeMedalTotals, loadData, renderMedalChart } from './charts/medalChart.js'
+import { loadSportsPictogramData, SportsPictogram } from './charts/sportsPictogram.js'
 import { mountLanding } from './landing.js'
 
 const ASSET_BASE = `${import.meta.env.BASE_URL}assets`
 
 let athletesTableController = null
 let dailyControls = null
+let pictogramController = null
 let dailyDateIndex = new Map()
 let countryDailyChartControls = null
 let globalCountryFilter = null
@@ -37,6 +40,10 @@ function syncSelectedDate (dateStr, source) {
 
   // When cumulative mode is on, panels ignore the selected date
   const effectiveDateStr = globalCumulativeMode ? null : dateStr
+
+  if (pictogramController) {
+    pictogramController.updateFilters(effectiveDateStr, globalGenderFilter);
+  }
 
   if (athletesTableController?.setExternalFilters) {
     athletesTableController.setExternalFilters({
@@ -194,6 +201,11 @@ function applyPanelMode () {
   setTimeNavVisible(!globalCumulativeMode)
   const effectiveDateStr = globalCumulativeMode ? null : globalSelectedDateStr
   const newPieData = computeGenderData(effectiveDateStr, globalCountryFilter)
+
+  if (pictogramController) {
+    pictogramController.update(effectiveDateStr, globalGenderFilter);
+  }
+
   pieControls = renderGenderPieChart('#gender-pie-wrapper', newPieData, handleGenderSelect)
   if (pieControls && globalGenderFilter) pieControls.updateSelection(globalGenderFilter)
   if (athletesTableController?.setExternalFilters) {
@@ -239,6 +251,11 @@ function updateAllVisualizations () {
     pieControls.updateSelection(globalGenderFilter)
   }
 
+  if (pictogramController) {
+    const effectiveDateStr = globalCumulativeMode ? null : globalSelectedDateStr;
+    pictogramController.update(effectiveDateStr, globalGenderFilter);
+  }
+  
   const filteredMedalData = computeMedalTotals(globalGenderFilter)
   renderMedalChart('#medal-chart-wrapper', filteredMedalData)
 
@@ -399,6 +416,15 @@ loadDailyData()
     console.error('Viz 5 – erreur :', err)
     document.querySelector('#daily-chart-wrapper').innerHTML =
       '<p style="color:red;text-align:center">Erreur lors du chargement des données journalières.</p>'
+  })
+
+  loadSportsPictogramData().then(() => {
+    pictogramController = new SportsPictogram('#panel-events', {
+      dateFilter: globalSelectedDateStr,
+      genderFilter: globalGenderFilter
+    })
+  }).catch(err => {
+    console.error("erreur de chargement du pictogramme:", err)
   })
 
 // ─────────────────────────────────────────────────────────────
