@@ -33,7 +33,7 @@
   align-items: center;
   gap: 4px;
   padding: 10px 6px 8px;
-  min-height: 115px; /* Garde une hauteur uniforme */
+  min-height: 115px;
   background: var(--bg, #fff);
   border: 1px solid var(--border, #e5e4e7);
   border-radius: 10px;
@@ -119,4 +119,106 @@
   font-size: 13px;
   font-style: italic;
   color: var(--text, #6b6375);
+}
+
+.pictogram-tooltip {
+  position: fixed;
+  z-index: 9999;
+  background: var(--bg, #ffffff);
+  border: 1px solid var(--border, #e5e4e7);
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  width: 260px;
+  pointer-events: none; /* Crucial: prevents the tooltip from stealing hover focus */
+  font-family: inherit;
+  display: none; 
+}
+
+.pictogram-tooltip-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: #f8f9fa;
+  border-bottom: 1px solid var(--border, #e5e4e7);
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.pictogram-tooltip-discipline {
+  font-weight: 700;
+  font-size: 13px;
+  color: #08060d;
+}
+
+.pictogram-tooltip-date {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text, #6b6375);
+}
+
+.pictogram-tooltip-events-container {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.pictogram-tooltip-event-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pictogram-tooltip-event-name {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #3b3644;
+  line-height: 1.3;
+}
+
+.pictogram-tooltip-event-winners {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.pictogram-tooltip-event-medal {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text, #6b6375);
+}
+
+.pictogram-tooltip-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+.pictogram-tooltip-flag-small {
+  width: 18px;
+  height: 13px;
+  object-fit: cover;
+  border-radius: 2px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: #f0f0f0;
+}
+
+.pictogram-tooltip-country-name {
+  font-weight: 500;
+  color: #08060d;
+}
+
+.pictogram-tooltip-empty {
+  font-size: 12px;
+  font-style: italic;
+  color: var(--text, #6b6375);
+  text-align: center;
+  padding: 10px 0;
 }

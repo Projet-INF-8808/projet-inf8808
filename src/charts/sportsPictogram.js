@@ -202,6 +202,10 @@ export class SportsPictogram {
           <div class="pictogram-medals">${medalDots}</div>
         `;
 
+        card.addEventListener("mouseenter", e => this.showToolTip(e, discipline));
+        card.addEventListener("mousemove", e => this.positionToolTip(e, discipline));
+        card.addEventListener("mouseleave", e => this.hideToolTip(e, discipline));
+
         return card;
     }
 
@@ -219,6 +223,90 @@ export class SportsPictogram {
         ).join('');
 
         return medalDots;
+    }
+
+    showToolTip(event, discipline) {
+        let tooltip = document.getElementById("pictogram-tooltip");
+
+        if(!tooltip) {
+            tooltip = document.createElement("div");
+            tooltip.id = "pictogram-tooltip";
+            tooltip.className = "pictogram-tooltip";
+            document.body.appendChild(tooltip);
+        }
+
+        const events = Array.from(new Set(discipline.medals.map(m => m.event))).sort();
+        const eventList = events.map(event => {
+            const eventMedals = discipline.medals.filter(m => m.event === event);
+            return `
+            <div class="pictogram-tooltip-event-group">
+                <div class="pictogram-tooltip-event-name">${event}</div>
+                <div class="pictogram-tooltip-event-winners">
+                    ${this.buildMedalHTML(eventMedals, 'Gold', MEDAL_COLORS.gold)}
+                    ${this.buildMedalHTML(eventMedals,'Silver', MEDAL_COLORS.silver)}
+                    ${this.buildMedalHTML(eventMedals, 'Bronze', MEDAL_COLORS.bronze)}
+                </div>
+            </div>
+            `
+        }).join("");
+
+        tooltip.innerHTML= `
+            <div class="pictogram-tooltip-header">
+                <span class="pictogram-tooltip-discipline">${discipline.disciplineFrenchName}</span>
+                <span class="pictogram-tooltip-date">${this.dateFilter ? d3.timeFormat('%d %B %Y')(new Date(this.dateFilter)) : 'Tous les jours'}</span>
+            </div>
+            <div class="pictogram-tooltip-events-container">
+                ${eventList || '<div class="pictogram-tooltip-empty">Aucune épreuve détaillée</div>'}
+            </div>
+        `
+        tooltip.style.display = "block";
+        this.positionToolTip(event);
+    }
+
+    buildMedalHTML(medals, type, color) {
+        const winners = medals.filter(d => d.medal_type === type);
+        if (winners.length === 0) return "";
+
+        const medalHTML = winners.map(m => `
+        <div class="pictogram-tooltip-event-medal">
+            <span class="pictogram-tooltip-dot" style="background:${color}"></span>
+            <img class="pictogram-tooltip-flag-small" src="${ASSET_BASE}/flags/${m.code.toLowerCase()}.svg"/>
+            <span class="pictogram-tooltip-country-name">${m.country}</span>
+        </div>    
+        `).join("")
+
+        return medalHTML;
+    }
+
+    positionToolTip(event) {
+        const tooltip = document.getElementById("pictogram-tooltip");
+        if (!tooltip || tooltip.style.display === 'none') return;
+
+        const width = tooltip.offsetWidth  || 240;
+        const height = tooltip.offsetHeight || 140;
+        let left, top;
+
+        if (event.clientX !== undefined && event.clientY !== undefined) {
+            left = event.clientX + 14;
+            top  = event.clientY - 28;
+
+            if (left + width > window.innerWidth  - 12) left = event.clientX - width - 14;
+            if (top  + height > window.innerHeight - 12) top  = event.clientY - height - 8;
+        } else {
+            const card = event.target.closest ? (event.target.closest('.pictogram-card') || event.target) : event.target;
+            const rect = card.getBoundingClientRect();
+            
+            left = rect.left + (rect.width / 2) - (width / 2);
+            top  = rect.top - height - 8;
+        }
+
+        tooltip.style.left = `${left}px`;
+        tooltip.style.top = `${top}px`;
+    }
+
+    hideToolTip() {
+        const toolTip = document.getElementById("pictogram-tooltip");
+        if(toolTip) toolTip.style.display = "none";
     }
 
 
