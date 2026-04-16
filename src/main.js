@@ -42,7 +42,7 @@ function syncSelectedDate (dateStr, source) {
   const effectiveDateStr = globalCumulativeMode ? null : dateStr
 
   if (pictogramController) {
-    pictogramController.updateFilters(effectiveDateStr, globalGenderFilter);
+    pictogramController.updateFilters(effectiveDateStr, globalGenderFilter, globalCountryFilter);
   }
 
   if (athletesTableController?.setExternalFilters) {
@@ -203,7 +203,7 @@ function applyPanelMode () {
   const newPieData = computeGenderData(effectiveDateStr, globalCountryFilter)
 
   if (pictogramController) {
-    pictogramController.update(effectiveDateStr, globalGenderFilter);
+    pictogramController.updateFilters(effectiveDateStr, globalGenderFilter, globalCountryFilter);
   }
 
   pieControls = renderGenderPieChart('#gender-pie-wrapper', newPieData, handleGenderSelect)
@@ -253,7 +253,7 @@ function updateAllVisualizations () {
 
   if (pictogramController) {
     const effectiveDateStr = globalCumulativeMode ? null : globalSelectedDateStr;
-    pictogramController.update(effectiveDateStr, globalGenderFilter);
+    pictogramController.updateFilters(effectiveDateStr, globalGenderFilter, globalCountryFilter);
   }
   
   const filteredMedalData = computeMedalTotals(globalGenderFilter)
@@ -421,7 +421,8 @@ loadDailyData()
   loadSportsPictogramData().then(() => {
     pictogramController = new SportsPictogram('#panel-events', {
       dateFilter: globalSelectedDateStr,
-      genderFilter: globalGenderFilter
+      genderFilter: globalGenderFilter,
+      countryFilter: globalCountryFilter
     })
   }).catch(err => {
     console.error("erreur de chargement du pictogramme:", err)
@@ -623,6 +624,18 @@ loadCountryDailyMedalData()
         const newPieData = computeGenderData(null, globalCountryFilter)
         pieControls = renderGenderPieChart('#gender-pie-wrapper', newPieData, handleGenderSelect)
         if (pieControls && globalGenderFilter) pieControls.updateSelection(globalGenderFilter)
+        
+        if (pictogramController) {
+          pictogramController.updateFilters(null, globalGenderFilter, globalCountryFilter);
+        }
+        if (athletesTableController?.setExternalFilters) {
+          athletesTableController.setExternalFilters({
+            dateStr:     null,
+            countryCode: globalCountryFilter,
+            sexCode:     globalGenderFilter,
+            cumulative:  globalCumulativeMode
+          })
+        }
       }
       _suppressModeSwitch = false
 

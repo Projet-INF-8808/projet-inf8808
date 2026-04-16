@@ -64,10 +64,11 @@ export async function loadSportsPictogramData() {
     return rawPictogramCache;
 }
 
-function filterSportsPictogramData(data, dateFilter, genderFilter) {
+function filterSportsPictogramData(data, dateFilter, genderFilter, countryFilter) {
     let filteredData = data;
     if(dateFilter) { filteredData = filteredData.filter(d => d.date === dateFilter) };
     if(genderFilter) { filteredData = filteredData.filter(d => d.sex === genderFilter) };
+    if(countryFilter) { filteredData = filteredData.filter(d => d.code === countryFilter) };
 
     return filteredData;
 }
@@ -104,12 +105,12 @@ function formatSportsPictogramData(data) {
     })
 }
 
-export function buildDailyData(dateFilter, genderFilter) {
+export function buildDailyData(dateFilter, genderFilter, countryFilter) {
     if(!rawPictogramCache) return [];
 
     let data = rawPictogramCache;
 
-    const filteredDisciplines = filterSportsPictogramData(data, dateFilter, genderFilter);
+    const filteredDisciplines = filterSportsPictogramData(data, dateFilter, genderFilter, countryFilter);
     const validMedals = deduplicateSportsPictogramData(filteredDisciplines);
     const grouped = d3.group(validMedals, d => d.discipline);
 
@@ -126,6 +127,7 @@ export class SportsPictogram {
         this.containerSelector = containerSelector;
         this.dateFilter = filters.dateFilter;
         this.genderFilter = filters.genderFilter;
+        this.countryFilter = filters.countryFilter;
 
         this.initPictogram()
         this.render();
@@ -148,9 +150,10 @@ export class SportsPictogram {
         `
     }
 
-    updateFilters(dateFilter, genderFilter) {
+    updateFilters(dateFilter, genderFilter, countryFilter) {
         this.dateFilter = dateFilter;
         this.genderFilter = genderFilter;
+        this.countryFilter = countryFilter;
         this.render()
     }
 
@@ -160,7 +163,7 @@ export class SportsPictogram {
 
         const grid = root.querySelector(".pictogram-grid")
         const empty = root.querySelector(".pictogram-empty");
-        const data = buildDailyData(this.dateFilter, this.genderFilter);
+        const data = buildDailyData(this.dateFilter, this.genderFilter, this.countryFilter);
 
         if(data.length === 0) {
             this.showEmptyState(grid, empty);
@@ -253,7 +256,7 @@ export class SportsPictogram {
         tooltip.innerHTML= `
             <div class="pictogram-tooltip-header">
                 <span class="pictogram-tooltip-discipline">${discipline.disciplineFrenchName}</span>
-                <span class="pictogram-tooltip-date">${this.dateFilter ? d3.timeFormat('%d %B %Y')(new Date(this.dateFilter)) : 'Tous les jours'}</span>
+                <span class="pictogram-tooltip-date">${this.dateFilter ? new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(this.dateFilter)) : 'Tous les jours'}</span>
             </div>
             <div class="pictogram-tooltip-events-container">
                 ${eventList || '<div class="pictogram-tooltip-empty">Aucune épreuve détaillée</div>'}
