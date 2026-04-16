@@ -47,6 +47,20 @@
   border-color: #C59B4E;
 }
 
+.pictogram-card.pictogram-card-naked {
+  background: transparent;
+  border: none;
+  min-height: auto;
+  box-shadow: none;
+  padding: 8px;
+}
+
+.pictogram-card.pictogram-card-naked:hover {
+  box-shadow: none;
+  border: none;
+  background: transparent;
+}
+
 @keyframes fadeInCard {
   from { opacity: 0; transform: translateY(6px) scale(0.96); }
   to { opacity: 1; transform: none; }
@@ -69,6 +83,31 @@
 }
 
 .pictogram-card:hover .pictogram-icon {
+  transform: scale(1.08);
+}
+
+.pictogram-single-icon-wrap {
+  width: 100%;
+  height: 100%;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pictogram-single-icon {
+  width: 64px;
+  height: 64px;
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  transition: transform 0.2s ease;
+}
+
+.pictogram-card:hover .pictogram-single-icon {
   transform: scale(1.08);
 }
 

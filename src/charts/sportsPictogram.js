@@ -225,15 +225,28 @@ export class SportsPictogram {
         card.className = "pictogram-card";
         card.dataset.discipline = discipline.discipline;
 
-        const medalDots = this.createMedalDots(discipline);
+        if (this.countryFilter && discipline.medals.length === 1) {
+            card.classList.add("pictogram-card-naked");
+            const medal = discipline.medals[0];
+            const color = medal.medal_type === 'Gold' ? MEDAL_COLORS.gold : 
+                          medal.medal_type === 'Silver' ? MEDAL_COLORS.silver : MEDAL_COLORS.bronze;
+                          
+            card.innerHTML = `
+              <div class="pictogram-single-icon-wrap">
+                <div class="pictogram-single-icon" style="background-color: ${color}; -webkit-mask-image: url(${discipline.disciplineIcon}); mask-image: url(${discipline.disciplineIcon});"></div>
+              </div>
+            `;
+        } else {
+            const medalDots = this.createMedalDots(discipline);
 
-        card.innerHTML = `
-          <div class="pictogram-icon-wrap">
-            <img class="pictogram-icon" src="${discipline.disciplineIcon}"/>
-          </div>
-          <div class="pictogram-card-name">${discipline.disciplineFrenchName}</div>
-          <div class="pictogram-medals">${medalDots}</div>
-        `;
+            card.innerHTML = `
+              <div class="pictogram-icon-wrap">
+                <img class="pictogram-icon" src="${discipline.disciplineIcon}"/>
+              </div>
+              <div class="pictogram-card-name">${discipline.disciplineFrenchName}</div>
+              <div class="pictogram-medals">${medalDots}</div>
+            `;
+        }
 
         card.addEventListener("mouseenter", e => this.showToolTip(e, discipline));
         card.addEventListener("mousemove", e => this.positionToolTip(e, discipline));
