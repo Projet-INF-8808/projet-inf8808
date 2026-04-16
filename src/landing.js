@@ -40,27 +40,15 @@ function buildHeroHTML () {
     </div>
   `).join('')
 
-  // Inline Olympic-style rings SVG
-  const ringsSVG = `
-    <svg class="hero-rings" viewBox="0 0 200 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <circle cx="20" cy="40" r="17" fill="none" stroke="#4fc3f7" stroke-width="5"/>
-      <circle cx="57" cy="40" r="17" fill="none" stroke="#ef5350" stroke-width="5"/>
-      <circle cx="94" cy="40" r="17" fill="none" stroke="#ffd740" stroke-width="5"/>
-      <circle cx="131" cy="40" r="17" fill="none" stroke="#66bb6a" stroke-width="5"/>
-      <circle cx="168" cy="40" r="17" fill="none" stroke="#f6c94e" stroke-width="5"/>
-    </svg>
-  `
+
 
   return `
     <section id="landing-hero" role="banner" aria-label="Page de présentation — Pékin 2022 sous la Loupe">
       <canvas id="snow-canvas" aria-hidden="true"></canvas>
 
       <div class="hero-content">
-        <!-- Badge -->
-        <div class="hero-badge">
-          <span class="hero-badge-dot"></span>
-          Jeux Olympiques d'hiver · Pékin 2022
-        </div>
+        <!-- Logo -->
+        <img class="hero-logo" src="${import.meta.env.BASE_URL}assets/beijing_2022_logo.png" alt="Logo Olympique Pékin 2022" />
 
         <!-- Title -->
         <h1 class="hero-title">
@@ -94,14 +82,9 @@ function buildHeroHTML () {
         </div>
       </div>
 
-      <!-- Olympic rings watermark -->
-      ${ringsSVG}
 
-      <!-- Scroll hint -->
-      <div class="hero-scroll-hint" aria-hidden="true">
-        <span>Défiler</span>
-        <div class="hero-scroll-line"></div>
-      </div>
+
+
     </section>
   `
 }

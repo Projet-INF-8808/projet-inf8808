@@ -386,8 +386,8 @@ function showTooltip (event, d, medal) {
 
 function moveTooltip (event) {
   d3.select('#medal-tooltip')
-    .style('left', `${event.pageX + 14}px`)
-    .style('top',  `${event.pageY - 28}px`)
+    .style('left', `${event.clientX + 14}px`)
+    .style('top',  `${event.clientY - 28}px`)
 }
 
 function hideTooltip () {

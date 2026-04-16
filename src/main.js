@@ -105,7 +105,7 @@ document.querySelector('#app').innerHTML = `
     <div class="section-header">
       <h2 class="section-title">Évolution journalière des Jeux olympiques d'hiver 2022</h2>
       <p class="section-subtitle">
-        Nombre d'événements finaux médaillés (or) par journée : survolez ou naviguez avec les flèches
+        Nombre d'événements finaux médaillés par journée : survolez ou naviguez avec les flèches
       </p>
     </div>
 
