@@ -107,7 +107,16 @@
   transition: transform 0.2s ease;
 }
 
-.pictogram-card:hover .pictogram-single-icon {
+.pictogram-single-img {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  display: block;
+  transition: transform 0.2s ease;
+}
+
+.pictogram-card:hover .pictogram-single-icon,
+.pictogram-card:hover .pictogram-single-img {
   transform: scale(1.08);
 }
 

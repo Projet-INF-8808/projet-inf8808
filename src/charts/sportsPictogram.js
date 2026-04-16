@@ -104,7 +104,8 @@ function formatSportsPictogramData(data, duplicateCards) {
             }
         });
     } else {
-        return Array.from(data, ([discipline, medals]) => {
+        return Array.from(data, ([eventName, medals]) => {
+            const discipline = medals[0].discipline;
             const nbGold = medals.filter(m => m.medal_type === 'Gold').length;
             const nbSilver = medals.filter(m => m.medal_type === 'Silver').length;
             const nbBronze = medals.filter(m => m.medal_type === 'Bronze').length;
@@ -142,9 +143,12 @@ export function buildDailyData(dateFilter, genderFilter, countryFilter) {
             return medalValue[b.medals[0].medal_type] - medalValue[a.medals[0].medal_type];
         });
     } else {
-        const grouped = d3.group(validMedals, d => d.discipline);
+        const grouped = d3.group(validMedals, d => d.event);
         formattedData = formatSportsPictogramData(grouped, false);
-        formattedData.sort((a, b) => (b.nbMedals - a.nbMedals));
+        formattedData.sort((a, b) => {
+            if (a.discipline !== b.discipline) return a.discipline.localeCompare(b.discipline);
+            return a.medals[0].event.localeCompare(b.medals[0].event);
+        });
     }
 
     return formattedData;
@@ -237,14 +241,12 @@ export class SportsPictogram {
               </div>
             `;
         } else {
-            const medalDots = this.createMedalDots(discipline);
+            card.classList.add("pictogram-card-naked");
 
             card.innerHTML = `
-              <div class="pictogram-icon-wrap">
-                <img class="pictogram-icon" src="${discipline.disciplineIcon}"/>
+              <div class="pictogram-single-icon-wrap">
+                <img class="pictogram-single-img" src="${discipline.disciplineIcon}"/>
               </div>
-              <div class="pictogram-card-name">${discipline.disciplineFrenchName}</div>
-              <div class="pictogram-medals">${medalDots}</div>
             `;
         }
 
