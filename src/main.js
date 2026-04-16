@@ -203,7 +203,7 @@ function applyPanelMode () {
   const newPieData = computeGenderData(effectiveDateStr, globalCountryFilter)
 
   if (pictogramController) {
-    pictogramController.update(effectiveDateStr, globalGenderFilter);
+    pictogramController.updateFilters(effectiveDateStr, globalGenderFilter);
   }
 
   pieControls = renderGenderPieChart('#gender-pie-wrapper', newPieData, handleGenderSelect)
@@ -253,7 +253,7 @@ function updateAllVisualizations () {
 
   if (pictogramController) {
     const effectiveDateStr = globalCumulativeMode ? null : globalSelectedDateStr;
-    pictogramController.update(effectiveDateStr, globalGenderFilter);
+    pictogramController.updateFilters(effectiveDateStr, globalGenderFilter);
   }
   
   const filteredMedalData = computeMedalTotals(globalGenderFilter)
