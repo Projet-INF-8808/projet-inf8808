@@ -85,24 +85,43 @@ function deduplicateSportsPictogramData(data) {
     return unique;
 }
 
-function formatSportsPictogramData(data) {
-    return Array.from(data, ([discipline, medals]) => {
-        const nbGold = medals.filter(m => m.medal_type === 'Gold').length;
-        const nbSilver = medals.filter(m => m.medal_type === 'Silver').length;
-        const nbBronze = medals.filter(m => m.medal_type === 'Bronze').length;
-        const nbMedals = nbGold + nbBronze + nbSilver;
+function formatSportsPictogramData(data, duplicateCards) {
+    if (duplicateCards) {
+        return data.map(medal => {
+            const isGold = medal.medal_type === 'Gold';
+            const isSilver = medal.medal_type === 'Silver';
+            const isBronze = medal.medal_type === 'Bronze';
 
-        return {
-            discipline: discipline,
-            nbGold: nbGold,
-            nbSilver: nbSilver,
-            nbBronze: nbBronze,
-            nbMedals: nbMedals,
-            medals: medals,
-            disciplineFrenchName:  DISCIPLINE_FRENCH_NAME[discipline],
-            disciplineIcon: DISCIPLINE_ICON_PATH[discipline]
-        }
-    })
+            return {
+                discipline: medal.discipline,
+                nbGold: isGold ? 1 : 0,
+                nbSilver: isSilver ? 1 : 0,
+                nbBronze: isBronze ? 1 : 0,
+                nbMedals: 1,
+                medals: [medal],
+                disciplineFrenchName:  DISCIPLINE_FRENCH_NAME[medal.discipline] || medal.discipline,
+                disciplineIcon: DISCIPLINE_ICON_PATH[medal.discipline]
+            }
+        });
+    } else {
+        return Array.from(data, ([discipline, medals]) => {
+            const nbGold = medals.filter(m => m.medal_type === 'Gold').length;
+            const nbSilver = medals.filter(m => m.medal_type === 'Silver').length;
+            const nbBronze = medals.filter(m => m.medal_type === 'Bronze').length;
+            const nbMedals = nbGold + nbBronze + nbSilver;
+
+            return {
+                discipline: discipline,
+                nbGold: nbGold,
+                nbSilver: nbSilver,
+                nbBronze: nbBronze,
+                nbMedals: nbMedals,
+                medals: medals,
+                disciplineFrenchName:  DISCIPLINE_FRENCH_NAME[discipline] || discipline,
+                disciplineIcon: DISCIPLINE_ICON_PATH[discipline]
+            }
+        });
+    }
 }
 
 export function buildDailyData(dateFilter, genderFilter, countryFilter) {
@@ -112,10 +131,21 @@ export function buildDailyData(dateFilter, genderFilter, countryFilter) {
 
     const filteredDisciplines = filterSportsPictogramData(data, dateFilter, genderFilter, countryFilter);
     const validMedals = deduplicateSportsPictogramData(filteredDisciplines);
-    const grouped = d3.group(validMedals, d => d.discipline);
 
-    const formattedData = formatSportsPictogramData(grouped);
-    formattedData.sort((a, b) => (b.nbMedals - a.nbMedals))
+    let formattedData;
+
+    if (countryFilter) {
+        formattedData = formatSportsPictogramData(validMedals, true);
+        const medalValue = { 'Gold': 3, 'Silver': 2, 'Bronze': 1 };
+        formattedData.sort((a, b) => {
+            if (a.discipline !== b.discipline) return a.discipline.localeCompare(b.discipline);
+            return medalValue[b.medals[0].medal_type] - medalValue[a.medals[0].medal_type];
+        });
+    } else {
+        const grouped = d3.group(validMedals, d => d.discipline);
+        formattedData = formatSportsPictogramData(grouped, false);
+        formattedData.sort((a, b) => (b.nbMedals - a.nbMedals));
+    }
 
     return formattedData;
 }
