@@ -64,10 +64,11 @@ export async function loadSportsPictogramData() {
     return rawPictogramCache;
 }
 
-function filterSportsPictogramData(data, dateFilter, genderFilter) {
+function filterSportsPictogramData(data, dateFilter, genderFilter, countryFilter) {
     let filteredData = data;
     if(dateFilter) { filteredData = filteredData.filter(d => d.date === dateFilter) };
     if(genderFilter) { filteredData = filteredData.filter(d => d.sex === genderFilter) };
+    if(countryFilter) { filteredData = filteredData.filter(d => d.code === countryFilter) };
 
     return filteredData;
 }
@@ -84,37 +85,67 @@ function deduplicateSportsPictogramData(data) {
     return unique;
 }
 
-function formatSportsPictogramData(data) {
-    return Array.from(data, ([discipline, medals]) => {
-        const nbGold = medals.filter(m => m.medal_type === 'Gold').length;
-        const nbSilver = medals.filter(m => m.medal_type === 'Silver').length;
-        const nbBronze = medals.filter(m => m.medal_type === 'Bronze').length;
-        const nbMedals = nbGold + nbBronze + nbSilver;
+function formatSportsPictogramData(data, duplicateCards) {
+    if (duplicateCards) {
+        return data.map(medal => {
+            const isGold = medal.medal_type === 'Gold';
+            const isSilver = medal.medal_type === 'Silver';
+            const isBronze = medal.medal_type === 'Bronze';
 
-        return {
-            discipline: discipline,
-            nbGold: nbGold,
-            nbSilver: nbSilver,
-            nbBronze: nbBronze,
-            nbMedals: nbMedals,
-            medals: medals,
-            disciplineFrenchName:  DISCIPLINE_FRENCH_NAME[discipline],
-            disciplineIcon: DISCIPLINE_ICON_PATH[discipline]
-        }
-    })
+            return {
+                discipline: medal.discipline,
+                nbGold: isGold ? 1 : 0,
+                nbSilver: isSilver ? 1 : 0,
+                nbBronze: isBronze ? 1 : 0,
+                nbMedals: 1,
+                medals: [medal],
+                disciplineFrenchName:  DISCIPLINE_FRENCH_NAME[medal.discipline] || medal.discipline,
+                disciplineIcon: DISCIPLINE_ICON_PATH[medal.discipline]
+            }
+        });
+    } else {
+        return Array.from(data, ([discipline, medals]) => {
+            const nbGold = medals.filter(m => m.medal_type === 'Gold').length;
+            const nbSilver = medals.filter(m => m.medal_type === 'Silver').length;
+            const nbBronze = medals.filter(m => m.medal_type === 'Bronze').length;
+            const nbMedals = nbGold + nbBronze + nbSilver;
+
+            return {
+                discipline: discipline,
+                nbGold: nbGold,
+                nbSilver: nbSilver,
+                nbBronze: nbBronze,
+                nbMedals: nbMedals,
+                medals: medals,
+                disciplineFrenchName:  DISCIPLINE_FRENCH_NAME[discipline] || discipline,
+                disciplineIcon: DISCIPLINE_ICON_PATH[discipline]
+            }
+        });
+    }
 }
 
-export function buildDailyData(dateFilter, genderFilter) {
+export function buildDailyData(dateFilter, genderFilter, countryFilter) {
     if(!rawPictogramCache) return [];
 
     let data = rawPictogramCache;
 
-    const filteredDisciplines = filterSportsPictogramData(data, dateFilter, genderFilter);
+    const filteredDisciplines = filterSportsPictogramData(data, dateFilter, genderFilter, countryFilter);
     const validMedals = deduplicateSportsPictogramData(filteredDisciplines);
-    const grouped = d3.group(validMedals, d => d.discipline);
 
-    const formattedData = formatSportsPictogramData(grouped);
-    formattedData.sort((a, b) => (b.nbMedals - a.nbMedals))
+    let formattedData;
+
+    if (countryFilter) {
+        formattedData = formatSportsPictogramData(validMedals, true);
+        const medalValue = { 'Gold': 3, 'Silver': 2, 'Bronze': 1 };
+        formattedData.sort((a, b) => {
+            if (a.discipline !== b.discipline) return a.discipline.localeCompare(b.discipline);
+            return medalValue[b.medals[0].medal_type] - medalValue[a.medals[0].medal_type];
+        });
+    } else {
+        const grouped = d3.group(validMedals, d => d.discipline);
+        formattedData = formatSportsPictogramData(grouped, false);
+        formattedData.sort((a, b) => (b.nbMedals - a.nbMedals));
+    }
 
     return formattedData;
 }
@@ -126,6 +157,7 @@ export class SportsPictogram {
         this.containerSelector = containerSelector;
         this.dateFilter = filters.dateFilter;
         this.genderFilter = filters.genderFilter;
+        this.countryFilter = filters.countryFilter;
 
         this.initPictogram()
         this.render();
@@ -148,9 +180,10 @@ export class SportsPictogram {
         `
     }
 
-    updateFilters(dateFilter, genderFilter) {
+    updateFilters(dateFilter, genderFilter, countryFilter) {
         this.dateFilter = dateFilter;
         this.genderFilter = genderFilter;
+        this.countryFilter = countryFilter;
         this.render()
     }
 
@@ -160,7 +193,7 @@ export class SportsPictogram {
 
         const grid = root.querySelector(".pictogram-grid")
         const empty = root.querySelector(".pictogram-empty");
-        const data = buildDailyData(this.dateFilter, this.genderFilter);
+        const data = buildDailyData(this.dateFilter, this.genderFilter, this.countryFilter);
 
         if(data.length === 0) {
             this.showEmptyState(grid, empty);
@@ -253,7 +286,7 @@ export class SportsPictogram {
         tooltip.innerHTML= `
             <div class="pictogram-tooltip-header">
                 <span class="pictogram-tooltip-discipline">${discipline.disciplineFrenchName}</span>
-                <span class="pictogram-tooltip-date">${this.dateFilter ? d3.timeFormat('%d %B %Y')(new Date(this.dateFilter)) : 'Tous les jours'}</span>
+                <span class="pictogram-tooltip-date">${this.dateFilter ? new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(this.dateFilter)) : 'Tous les jours'}</span>
             </div>
             <div class="pictogram-tooltip-events-container">
                 ${eventList || '<div class="pictogram-tooltip-empty">Aucune épreuve détaillée</div>'}
