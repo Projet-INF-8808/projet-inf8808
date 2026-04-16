@@ -86,7 +86,7 @@ document.querySelector('#app').innerHTML = `
   <section id="section-viz1" class="page-section" aria-label="Graphique des médailles par pays">
     <div class="section-header">
       <h2 class="section-title">Médailles aux Jeux Olympiques d'hiver 2022</h2>
-      <p class="section-subtitle">Classement des pays par nombre total de médailles — Or, Argent, Bronze</p>
+      <p class="section-subtitle">Classement des pays par nombre total de médailles : Or, Argent, Bronze</p>
     </div>
     <div id="medal-chart-wrapper"></div>
   </section>
@@ -105,7 +105,7 @@ document.querySelector('#app').innerHTML = `
     <div class="section-header">
       <h2 class="section-title">Évolution journalière des Jeux olympiques d'hiver 2022</h2>
       <p class="section-subtitle">
-        Nombre d'événements finaux médaillés (or) par journée — survolez ou naviguez avec les flèches
+        Nombre d'événements finaux médaillés (or) par journée : survolez ou naviguez avec les flèches
       </p>
     </div>
 
