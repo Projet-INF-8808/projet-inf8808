@@ -1,4 +1,3 @@
-/* ── Chart container ─────────────────────────────────────────────────── */
 #medal-chart-section {
   width: 100%;
   height: 100dvh;
@@ -30,16 +29,12 @@
   overflow-y: hidden;
 }
 
-/* ── Bars ────────────────────────────────────────────────────────────── */
 .bar {
   transition: filter 0.2s ease;
   cursor: pointer;
 }
-
-/* ── Flag images ─────────────────────────────────────────────────────── */
 .country-flag {
   border-radius: 2px;
-  /* SVG <image> doesn't support box-shadow, but we can fake via filter */
   filter: drop-shadow(0 1px 2px rgba(0,0,0,0.18));
 }
 
@@ -53,7 +48,6 @@
   fill: #CD7F32;
 }
 
-/* ── Labels ──────────────────────────────────────────────────────────── */
 .country-label {
   font-size: 13px;
   fill: var(--text-h, #1a1a2e);
@@ -76,7 +70,6 @@
   font-family: inherit;
 }
 
-/* ── Axes ────────────────────────────────────────────────────────────── */
 .axis text {
   font-size: 12px;
   fill: var(--text, #6b6375);
@@ -87,7 +80,6 @@
   stroke: var(--border, #e5e4e7);
 }
 
-/* ── Axis labels ─────────────────────────────────────────────────────── */
 .axis-label {
   font-size: 14px;
   font-weight: 600;
@@ -96,14 +88,12 @@
   letter-spacing: 0.3px;
 }
 
-/* ── Grid ────────────────────────────────────────────────────────────── */
 .grid .tick line {
   stroke: var(--border, #e5e4e7);
   stroke-dasharray: 4 3;
   stroke-width: 1;
 }
 
-/* ── Legend ──────────────────────────────────────────────────────────── */
 .legend-label {
   font-size: 13px;
   fill: var(--text-h, #1a1a2e);
@@ -111,7 +101,6 @@
   font-weight: 500;
 }
 
-/* ── Tooltip ─────────────────────────────────────────────────────────── */
 #medal-tooltip {
   position: fixed;
   display: none;
@@ -204,7 +193,6 @@
   padding-top: 6px;
 }
 
-/* ── Dark mode overrides ─────────────────────────────────────────────── */
 @media (prefers-color-scheme: dark) {
   .bar-value {
     fill: rgba(255, 255, 255, 0.75);

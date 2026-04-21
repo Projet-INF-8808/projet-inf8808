@@ -36,8 +36,7 @@ export function computeMedalTotals (genderFilter) {
 
   const seen = new Set()
   const uniqueMedals = filtered.filter(d => {
-    // Only count 1 medal per event per country to handle team events
-    const key = `${d.country_code.trim()}||${d.event.trim()}||${d.medal_type.trim()}`
+      const key = `${d.country_code.trim()}||${d.event.trim()}||${d.medal_type.trim()}`
     if (seen.has(key)) return false
     seen.add(key)
     return true
@@ -71,7 +70,6 @@ export function computeMedalTotals (genderFilter) {
  * @param {Array}  data        – Merged medal data rows.
  */
 export function renderMedalChart (containerId, data) {
-  // Sort by total desc, then gold, silver, bronze as tie-breakers, then alphabetical
   const sorted = [...data].sort(
     (a, b) =>
       b.total  - a.total  ||
@@ -81,25 +79,20 @@ export function renderMedalChart (containerId, data) {
       a.code.localeCompare(b.code)
   )
 
-  // ---------- Dimensions ----------
   const container = document.querySelector(containerId)
   const containerWidth = container.getBoundingClientRect().width || 800
 
-  const flagW   = 28   // flag image width
-  const flagH   = 20   // flag image height
-  const flagGap = 8    // gap between flag and code text
-  const codeW   = 36   // rough width of 3-letter code text
+  const flagW   = 28   
+  const flagH   = 20   
+  const flagGap = 8    
+  const codeW   = 36   
 
   const margin = {
     top: 24,
     right: 160,
     bottom: 40,
-    // left margin = flag + gap + code + gap-to-bar
     left: flagW + flagGap + codeW + 14
   }
-
-  // Fit the chart within the available viewport height.
-  // Subtract the section header (title + subtitle + padding ≈ 130px).
   const sectionHeaderH = 130
   const availableH = window.innerHeight - sectionHeaderH
   const height = Math.max(availableH, sorted.length * 20 + margin.top + margin.bottom)
@@ -108,7 +101,6 @@ export function renderMedalChart (containerId, data) {
   const innerW = width - margin.left - margin.right
   const innerH = height - margin.top - margin.bottom
 
-  // ---------- Scales ----------
   const maxTotal = d3.max(sorted, d => d.total)
 
   const xScale = d3
@@ -131,7 +123,6 @@ export function renderMedalChart (containerId, data) {
 
   const stack = ['gold', 'silver', 'bronze']
 
-  // ---------- SVG ----------
   d3.select(containerId).selectAll('svg').remove()
   
   const svg = d3
@@ -143,7 +134,6 @@ export function renderMedalChart (containerId, data) {
     .attr('role', 'img')
     .attr('aria-label', 'Graphique des médailles olympiques par pays')
 
-  // Clip path so flags don't bleed outside the left margin area
   const defs = svg.append('defs')
 
   const filter = defs.append('filter').attr('id', 'glow')
@@ -156,7 +146,6 @@ export function renderMedalChart (containerId, data) {
     .append('g')
     .attr('transform', `translate(${margin.left},${margin.top})`)
 
-  // ---------- X-axis grid lines ----------
   g.append('g')
     .attr('class', 'grid')
     .attr('transform', `translate(0,${innerH})`)
@@ -168,14 +157,12 @@ export function renderMedalChart (containerId, data) {
     )
     .call(ax => ax.select('.domain').remove())
 
-  // ---------- Axes ----------
   g.append('g')
     .attr('class', 'axis x-axis')
     .attr('transform', `translate(0,${innerH})`)
     .call(d3.axisBottom(xScale).ticks(6).tickFormat(d3.format('d')))
     .call(ax => ax.select('.domain').remove())
 
-  // X-axis label
   g.append('text')
     .attr('class', 'axis-label x-axis-label')
     .attr('x', innerW / 2)
@@ -183,14 +170,12 @@ export function renderMedalChart (containerId, data) {
     .attr('text-anchor', 'middle')
     .text('Nombre de médailles')
 
-  // Hide the default y-axis ticks/labels — we draw our own
   g.append('g')
     .attr('class', 'axis y-axis')
     .call(d3.axisLeft(yScale).tickFormat(''))
     .call(ax => ax.select('.domain').remove())
     .call(ax => ax.selectAll('.tick line').remove())
 
-  // Y-axis label — top-left, not rotated
   g.append('text')
     .attr('class', 'axis-label y-axis-label')
     .attr('x', -margin.left)
@@ -198,7 +183,6 @@ export function renderMedalChart (containerId, data) {
     .attr('text-anchor', 'start')
     .text('Pays')
 
-  // ---------- Per-row label groups (flag + code) ----------
   const labelGroups = g
     .selectAll('.label-group')
     .data(sorted)
@@ -206,8 +190,6 @@ export function renderMedalChart (containerId, data) {
     .attr('class', 'label-group')
     .attr('transform', d => `translate(0,${yScale(d.code) + yScale.bandwidth() / 2})`)
 
-  // Country flag — positioned to the left of y-axis origin
-  // flag right edge sits at -codeW - flagGap - (small buffer)
   const flagX = -(codeW + flagGap + flagW + 2)
 
   labelGroups
@@ -220,7 +202,6 @@ export function renderMedalChart (containerId, data) {
     .attr('height', flagH)
     .attr('preserveAspectRatio', 'xMidYMid meet')
 
-  // 3-letter country code text
   labelGroups
     .append('text')
     .attr('class', 'country-label')
@@ -230,7 +211,6 @@ export function renderMedalChart (containerId, data) {
     .attr('text-anchor', 'end')
     .text(d => d.code)
 
-  // ---------- Stacked bars ----------
   const barGroups = g
     .selectAll('.bar-group')
     .data(sorted)
@@ -274,7 +254,6 @@ export function renderMedalChart (containerId, data) {
       .attr('width', d => xScale(d[medal]))
   })
 
-  // ---------- Medal count labels (on bars) ----------
   stack.forEach(medal => {
     barGroups
       .append('text')
@@ -297,7 +276,6 @@ export function renderMedalChart (containerId, data) {
       .attr('opacity', d => (xScale(d[medal]) > 18 ? 1 : 0))
   })
 
-  // ---------- Total labels (right of bars) ----------
   barGroups
     .append('text')
     .attr('class', 'total-label')
@@ -311,7 +289,6 @@ export function renderMedalChart (containerId, data) {
     .delay((_, i) => i * 30 + 600)
     .attr('opacity', 1)
 
-  // ---------- Legend ----------
   const legendData = [
     { key: 'gold',   label: 'Or',     color: medalColors.gold   },
     { key: 'silver', label: 'Argent', color: medalColors.silver },
@@ -347,7 +324,6 @@ export function renderMedalChart (containerId, data) {
   return svg.node()
 }
 
-// ---------- Tooltip helpers ----------
 function showTooltip (event, d, medal) {
   const medalLabels = { gold: 'Or', silver: 'Argent', bronze: 'Bronze' }
   const medalColors = {

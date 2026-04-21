@@ -50,8 +50,8 @@ export function renderGenderPieChart (containerId, data, onSelect) {
   const width = 500
   const height = 220
   const radius = 60
-  const cx = 145     // pie center x — leaves 65px on the left for labels
-  const cy = 110     // pie center y — centred vertically
+  const cx = 145
+  const cy = 110
 
   d3.select(containerId).selectAll('svg').remove()
 
@@ -74,7 +74,6 @@ export function renderGenderPieChart (containerId, data, onSelect) {
     .innerRadius(0)
     .outerRadius(radius)
 
-  // Arc for labels positioning — 20px outside the slice edge
   const labelRadius = radius + 20
   const outerArc = d3.arc()
     .innerRadius(labelRadius)
@@ -82,7 +81,6 @@ export function renderGenderPieChart (containerId, data, onSelect) {
 
   const pieData = pie(data)
 
-  // ── DRAW SLICES ───────────────────────────────────────────────
   const slices = g.selectAll('path')
     .data(pieData)
     .join('path')
@@ -97,8 +95,6 @@ export function renderGenderPieChart (containerId, data, onSelect) {
       d3.select(this).style('cursor', 'pointer');
     })
 
-  // ── LABELS ───────────────────────────────────────────────────
-  // Text labels outside the pie
   const labelsGroup = g.append('g').attr('class', 'gender-labels')
   
   labelsGroup.selectAll('text')
@@ -132,7 +128,6 @@ export function renderGenderPieChart (containerId, data, onSelect) {
        d3.select(this).style('cursor', 'pointer');
     })
 
-  // ── LEGEND ───────────────────────────────────────────────────
   const legendGroup = svg.append('g')
     .attr('class', 'gender-legend-group')
     .attr('transform', `translate(350, ${cy - (data.length * 25) / 2 + 10})`)
@@ -165,7 +160,6 @@ export function renderGenderPieChart (containerId, data, onSelect) {
     
   return {
     updateSelection: (activeKey) => {
-      // Dim unselected slices and labels
       slices.classed('dimmed', d => activeKey !== null && d.data.key !== activeKey)
       labelsGroup.selectAll('text').classed('dimmed', d => activeKey !== null && d.data.key !== activeKey)
       legendItems.classed('dimmed', d => activeKey !== null && d.key !== activeKey)

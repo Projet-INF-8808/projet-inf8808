@@ -1,11 +1,5 @@
-/* ═══════════════════════════════════════════════════════════
-   LANDING PAGE — Pékin 2022 sous la Loupe
-   Dark Olympic aesthetic: deep navy · ice blue · gold
-   ═══════════════════════════════════════════════════════════ */
-
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;400;600;700;900&family=Inter:wght@300;400;500&display=swap');
 
-/* ── Root overrides for the landing section only ──────────── */
 #landing-hero {
   --hero-bg-1: #03071e;
   --hero-bg-2: #0a1628;
@@ -20,7 +14,7 @@
 
   position: relative;
   width: 100vw;
-  margin-left: calc(-50vw + 50%);   /* break out of max-width container */
+  margin-left: calc(-50vw + 50%);   
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -33,7 +27,6 @@
   padding: 30px 24px;
 }
 
-/* ── Snowfall canvas ──────────────────────────────────────── */
 #snow-canvas {
   position: absolute;
   inset: 0;
@@ -43,9 +36,6 @@
   z-index: 0;
 }
 
-
-
-/* ── Content wrapper (above canvas) ──────────────────────── */
 .hero-content {
   position: relative;
   z-index: 1;
@@ -57,7 +47,6 @@
   gap: 0;
 }
 
-/* ── Olympic rings badge ──────────────────────────────────── */
 .hero-badge {
   display: inline-flex;
   align-items: center;
@@ -91,7 +80,6 @@
   50%       { opacity: 0.5; transform: scale(0.75); }
 }
 
-/* ── Olympic Logo ─────────────────────────────────────────── */
 .hero-logo {
   height: clamp(50px, 8vh, 90px);
   width: auto;
@@ -100,7 +88,6 @@
   object-fit: contain;
 }
 
-/* ── Main title ───────────────────────────────────────────── */
 .hero-title {
   font-family: 'Outfit', sans-serif;
   font-weight: 900;
@@ -117,7 +104,6 @@
   display: block;
 }
 
-/* ── Subtitle ─────────────────────────────────────────────── */
 .hero-subtitle {
   font-family: 'Inter', sans-serif;
   font-weight: 300;
@@ -130,7 +116,6 @@
   animation: fadeSlideUp 0.9s 0.25s ease both;
 }
 
-/* ── Stats row ────────────────────────────────────────────── */
 .hero-stats {
   display: flex;
   gap: 40px;
@@ -154,8 +139,6 @@
   color: var(--text-hero);
 }
 
-
-
 .hero-stat-label {
   font-family: 'Inter', sans-serif;
   font-size: 11px;
@@ -172,7 +155,6 @@
   align-self: center;
 }
 
-/* ── CTA scroll button ────────────────────────────────────── */
 .hero-cta {
   display: inline-flex;
   align-items: center;
@@ -207,7 +189,6 @@
 }
 .hero-cta:hover .hero-cta-arrow { transform: translateY(4px); }
 
-/* ── Team credits card ────────────────────────────────────── */
 .hero-credits {
   position: relative;
   z-index: 1;
@@ -268,7 +249,6 @@
   letter-spacing: 0.05em;
 }
 
-/* ── Olympic rings SVG decoration ─────────────────────────── */
 .hero-rings {
   position: absolute;
   bottom: 32px;
@@ -278,7 +258,6 @@
   pointer-events: none;
 }
 
-/* ── Scroll indicator ─────────────────────────────────────── */
 .hero-scroll-hint {
   position: absolute;
   bottom: 28px;
@@ -315,7 +294,6 @@
   100% { transform: scaleY(0); transform-origin: bottom; opacity: 0; }
 }
 
-/* ── Entry animations ─────────────────────────────────────── */
 @keyframes fadeSlideUp {
   from { opacity: 0; transform: translateY(28px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -331,7 +309,6 @@
   to   { opacity: 0.45; }
 }
 
-/* ── Responsive ───────────────────────────────────────────── */
 @media (max-width: 640px) {
   .hero-team-grid {
     grid-template-columns: 1fr;

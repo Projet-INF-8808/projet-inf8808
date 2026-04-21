@@ -2,10 +2,6 @@ import * as d3 from 'd3'
 
 const ASSET_BASE = `${import.meta.env.BASE_URL}assets`
 
-// ─────────────────────────────────────────────────────────────
-//  DATA LOADING
-// ─────────────────────────────────────────────────────────────
-
 /**
  * Loads medals.csv and returns the daily counts of unique gold-medal events.
  * "Unique" means one row per (date × event), so relay teams don't inflate counts.
@@ -68,10 +64,6 @@ export function buildDailyData(genderFilter) {
   return sorted
 }
 
-// ─────────────────────────────────────────────────────────────
-//  CHART RENDERER
-// ─────────────────────────────────────────────────────────────
-
 /**
  * Renders the daily medal events line chart.
  * @param {string}   containerId  CSS selector of the wrapper div
@@ -92,7 +84,6 @@ export function renderDailyMedalChart (containerId, data, onDateSelect, options 
   const innerW = width  - margin.left - margin.right
   const innerH = height - margin.top  - margin.bottom
 
-  // ── Scales ──────────────────────────────────────────────────
   const xScale = d3.scaleTime()
     .domain(d3.extent(data, d => d.date))
     .range([0, innerW])
@@ -103,7 +94,6 @@ export function renderDailyMedalChart (containerId, data, onDateSelect, options 
     .range([innerH, 0])
     .nice()
 
-  // ── SVG ─────────────────────────────────────────────────────
   d3.select(containerId).selectAll('svg').remove()
 
   const svg = d3.select(containerId)
@@ -129,7 +119,6 @@ export function renderDailyMedalChart (containerId, data, onDateSelect, options 
   const g = svg.append('g')
     .attr('transform', `translate(${margin.left},${margin.top})`)
 
-  // ── Grid ────────────────────────────────────────────────────
   g.append('g')
     .attr('class', 'dm-grid')
     .call(
@@ -140,7 +129,6 @@ export function renderDailyMedalChart (containerId, data, onDateSelect, options 
     )
     .call(ax => ax.select('.domain').remove())
 
-  // ── Area ─────────────────────────────────────────────────────
   const area = d3.area()
     .x(d => xScale(d.date))
     .y0(innerH)
@@ -152,7 +140,6 @@ export function renderDailyMedalChart (containerId, data, onDateSelect, options 
     .attr('class', 'dm-area')
     .attr('d', area)
 
-  // ── Line ─────────────────────────────────────────────────────
   const line = d3.line()
     .x(d => xScale(d.date))
     .y(d => yScale(d.count))
@@ -163,7 +150,6 @@ export function renderDailyMedalChart (containerId, data, onDateSelect, options 
     .attr('class', 'dm-line')
     .attr('d', line)
 
-  // ── Data points ──────────────────────────────────────────────
   const dots = g.selectAll('.dm-dot')
     .data(data)
     .join('circle')
@@ -172,7 +158,6 @@ export function renderDailyMedalChart (containerId, data, onDateSelect, options 
     .attr('cy', d => yScale(d.count))
     .attr('r', 4)
 
-  // ── Axes ─────────────────────────────────────────────────────
   const dateFormat = d3.timeFormat('%d %b')
   g.append('g')
     .attr('class', 'dm-axis dm-axis-x')
@@ -192,7 +177,6 @@ export function renderDailyMedalChart (containerId, data, onDateSelect, options 
     .call(d3.axisLeft(yScale).ticks(5).tickFormat(d3.format('d')))
     .call(ax => ax.select('.domain').remove())
 
-  // ── Axis labels ──────────────────────────────────────────────
   g.append('text')
     .attr('class', 'dm-axis-label')
     .attr('x', innerW / 2)
@@ -208,30 +192,23 @@ export function renderDailyMedalChart (containerId, data, onDateSelect, options 
     .attr('text-anchor', 'middle')
     .text("Nombre d'événements")
 
-  // ── Persistent cursor (always visible) ───────────────────────
   const cursorGroup = g.append('g').attr('class', 'dm-cursor-group')
 
-  // Vertical cursor line — always displayed
   const cursorLine = cursorGroup.append('line')
     .attr('class', 'dm-cursor-line')
     .attr('y1', 0)
     .attr('y2', innerH)
 
-  // Selected date dot (on the line)
   const cursorDot = cursorGroup.append('circle')
     .attr('class', 'dm-cursor-dot')
     .attr('r', 7)
-
-  // ── Hover preview dot (replaces tooltip anchor) ──────────────
   const hoverDot = cursorGroup.append('circle')
     .attr('class', 'dm-hover-dot')
     .attr('r', 5)
     .style('display', 'none')
 
-  // ── Bisector ─────────────────────────────────────────────────
   const bisect = d3.bisector(d => d.date).center
 
-  // ── State ────────────────────────────────────────────────────
   let selectedIdx = 0
 
   function selectIndex (idx) {
@@ -248,7 +225,6 @@ export function renderDailyMedalChart (containerId, data, onDateSelect, options 
       .transition().duration(200).ease(d3.easeCubicOut)
       .attr('cx', cx).attr('cy', cy)
 
-    // Highlight the active dot
     dots.classed('dm-dot--active', (_, i) => i === selectedIdx)
 
     if (typeof onDateSelect === 'function') {
@@ -256,7 +232,6 @@ export function renderDailyMedalChart (containerId, data, onDateSelect, options 
     }
   }
 
-  // ── Invisible overlay for mouse interaction ───────────────────
   g.append('rect')
     .attr('class', 'dm-overlay')
     .attr('width', innerW)
@@ -282,10 +257,8 @@ export function renderDailyMedalChart (containerId, data, onDateSelect, options 
       hideTooltip()
     })
 
-  // ── Initial selection ─────────────────────────────────────────
   selectIndex(options.initialIndex || 0)
 
-  // ── Return navigation controls ───────────────────────────────
   return {
     prev: ()    => selectIndex(selectedIdx - 1),
     next: ()    => selectIndex(selectedIdx + 1),
@@ -295,9 +268,6 @@ export function renderDailyMedalChart (containerId, data, onDateSelect, options 
   }
 }
 
-// ─────────────────────────────────────────────────────────────
-//  TOOLTIP
-// ─────────────────────────────────────────────────────────────
 const fmtDate = d3.timeFormat('%d %B %Y')
 
 function showTooltip (event, d) {

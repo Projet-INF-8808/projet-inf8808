@@ -1,8 +1,3 @@
-/**
- * landing.js — Pékin 2022 sous la Loupe
- * Injects the hero landing section and drives the snowfall canvas animation.
- */
-
 const TEAM = [
   { name: 'Jérôme Chabot',   id: '2144812' },
   { name: 'Olivier Falardeau', id: '2135428' },
@@ -22,7 +17,6 @@ const STATS = [
   { value: '16',  label: 'Jours',    cls: 'ice'     },
 ]
 
-/** Build the hero HTML string */
 function buildHeroHTML () {
   const statsHTML = STATS.map(s =>
     s.sep
@@ -89,7 +83,6 @@ function buildHeroHTML () {
   `
 }
 
-/** Snowfall particle system on a 2D canvas */
 function initSnow (canvasId) {
   const canvas = document.getElementById(canvasId)
   if (!canvas) return
@@ -145,7 +138,6 @@ function initSnow (canvasId) {
   draw()
 }
 
-/** Smooth-scroll the CTA button */
 function bindCTA () {
   const btn = document.getElementById('hero-cta-btn')
   if (!btn) return
@@ -156,18 +148,13 @@ function bindCTA () {
   })
 }
 
-/** Mount the landing hero before the app content */
 export function mountLanding () {
   const app = document.querySelector('#app')
   if (!app) return
-
-  // Insert hero BEFORE everything else in #app
   const wrapper = document.createElement('div')
   wrapper.innerHTML = buildHeroHTML()
-  // Prepend as the very first child
   app.prepend(wrapper.firstElementChild)
 
-  // Kick off snow
   initSnow('snow-canvas')
   bindCTA()
 }

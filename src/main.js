@@ -85,9 +85,6 @@ function syncSelectedDate (dateStr, source) {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
-//  PAGE SHELL
-// ─────────────────────────────────────────────────────────────
 document.querySelector('#app').innerHTML = `
   <!-- ══════════════════════════════════════════════
        SECTION 1 — Medal bar chart
@@ -185,12 +182,7 @@ document.querySelector('#app').innerHTML = `
   </section>
 `
 
-// Mount the landing hero (prepended before chart sections)
 mountLanding()
-
-// ─────────────────────────────────────────────────────────────
-//  PANEL MODE TOGGLE (date vs cumulative)
-// ─────────────────────────────────────────────────────────────
 const modeTabDate  = document.getElementById('mode-tab-date')
 const modeTabCumul = document.getElementById('mode-tab-cumul')
 
@@ -225,7 +217,6 @@ function applyPanelMode () {
       cumulative:  globalCumulativeMode
     })
   }
-  // Hide the red selection band on the country bar chart in cumulative mode
   if (globalCumulativeMode) {
     countryDailyChartControls?.hideSelection?.()
   } else if (globalSelectedDateStr) {
@@ -248,9 +239,6 @@ modeTabCumul.addEventListener('click', () => {
   applyPanelMode()
 })
 
-// ─────────────────────────────────────────────────────────────
-//  GLOBAL STATE
-// ─────────────────────────────────────────────────────────────
 let globalGenderFilter = null
 let pieControls = null
 let dailyChartControls = null
@@ -294,7 +282,6 @@ function updateAllVisualizations () {
   )
   _suppressModeSwitch = false
 
-  // Re-render the country daily bar chart with the new gender filter
   if (globalCountryFilter) {
     const newCountryData = computeCountryDailyData(globalGenderFilter)
     const updatedCountry = newCountryData.countries.find(c => c.code === globalCountryFilter)
@@ -310,9 +297,7 @@ function handleGenderSelect (gender) {
   updateAllVisualizations()
 }
 
-// ─────────────────────────────────────────────────────────────
 //  VIZ 1 — Medal bar chart
-// ─────────────────────────────────────────────────────────────
 loadData()
   .then(medalData => {
     renderMedalChart('#medal-chart-wrapper', medalData)
@@ -322,9 +307,7 @@ loadData()
     document.querySelector('#medal-chart-wrapper').innerHTML = '<p style="color:red;text-align:center">Erreur lors du chargement des données.</p>'
   })
 
-// ─────────────────────────────────────────────────────────────
 //  VIZ 2 — Gender Pie Chart
-// ─────────────────────────────────────────────────────────────
 loadGenderData()
   .then(data => {
     pieControls = renderGenderPieChart('#gender-pie-wrapper', data, handleGenderSelect)
@@ -334,9 +317,7 @@ loadGenderData()
     document.querySelector('#gender-pie-wrapper').innerHTML = '<p style="color:red;text-align:center">Erreur lors du chargement des données.</p>'
   })
 
-// ─────────────────────────────────────────────────────────────
 //  VIZ 4 — Athletes table
-// ─────────────────────────────────────────────────────────────
 loadAthletesTableMedalsData()
   .then(athletesTableData => {
     athletesTableController = initAthletesTable('#athletes-table-section', athletesTableData)
@@ -349,9 +330,7 @@ loadAthletesTableMedalsData()
     }
   })
 
-// ─────────────────────────────────────────────────────────────
 //  VIZ 5 — Daily medal events + arrow nav
-// ─────────────────────────────────────────────────────────────
 const fmtLong     = d3.timeFormat('%A %d %B %Y')
 const fmtShort    = d3.timeFormat('%d %B %Y')
 
@@ -437,9 +416,7 @@ loadDailyData()
     console.error("erreur de chargement du pictogramme:", err)
   })
 
-// ─────────────────────────────────────────────────────────────
 //  VIZ 6 — Country daily bar chart (embedded in section 5)
-// ─────────────────────────────────────────────────────────────
 const countrySelect  = document.getElementById('country-daily-select')
 const countrySummary = document.getElementById('country-daily-country')
 const countryDetail  = document.getElementById('country-daily-detail')
@@ -449,7 +426,6 @@ const barWrapper     = document.getElementById('country-daily-chart-wrapper')
 
 const fmtViz6Date = d3.timeFormat('%d %B %Y')
 
-/** Returns the currently-active chart controls (line or bar). */
 function activeChartControls () {
   return barWrapper?.style.display !== 'none' ? barNavControls : dailyControls
 }
@@ -516,11 +492,6 @@ function renderCountryDailyDetail (countryData, dayData) {
   `
 }
 
-/**
- * Build bar-chart navigation (prev/next by date index).
- * Mirrors the line chart's selectIndex pattern for the bar chart.
- * Pass skipInitialSelect=true when called before countryDailyChartControls is assigned.
- */
 function buildBarControls (countryData, currentDateStr, onSelect, skipInitialSelect) {
   const dates = countryData.daily.map(d => d.dateStr)
   let idx = Math.max(0, dates.indexOf(currentDateStr))
@@ -537,11 +508,9 @@ function buildBarControls (countryData, currentDateStr, onSelect, skipInitialSel
     if (typeof onSelect === 'function') onSelect(day)
   }
 
-  // Only call goTo on init when countryDailyChartControls is already assigned
   if (!skipInitialSelect) {
     goTo(idx)
   } else {
-    // Update nav UI without calling selectDate (chart not ready yet)
     const day = countryData.daily[idx]
     updateNavUI(idx, dates.length, { date: day.date, count: day.total })
     btnPrev.disabled = idx <= 0
@@ -557,7 +526,7 @@ function buildBarControls (countryData, currentDateStr, onSelect, skipInitialSel
   }
 }
 
-let barNavControls = null   // arrow-nav wrapper for bar mode
+let barNavControls = null
 
 function renderCountryDailyCountry (countryData, selectedDateStr) {
   if (!countryData) return
@@ -577,7 +546,6 @@ function renderCountryDailyCountry (countryData, selectedDateStr) {
       onDateSelect: dayData => {
         renderCountryDailyDetail(countryData, dayData)
         syncSelectedDate(dayData.dateStr, 'viz6')
-        // keep arrow-nav index in sync when user clicks a bar
         const i = countryData.daily.findIndex(d => d.dateStr === dayData.dateStr)
         if (i >= 0) {
           barNavControls?.goTo(i)
@@ -588,8 +556,6 @@ function renderCountryDailyCountry (countryData, selectedDateStr) {
 
   renderCountryDailyDetail(countryData, selectedDay)
 
-  // Build arrow-nav that drives the bar chart (skipInitialSelect because
-  // countryDailyChartControls was just assigned above — selectDate works now)
   barNavControls = buildBarControls(
     countryData,
     selectedDay?.dateStr,
@@ -597,9 +563,8 @@ function renderCountryDailyCountry (countryData, selectedDateStr) {
       renderCountryDailyDetail(countryData, dayData)
       syncSelectedDate(dayData.dateStr, 'viz6')
     },
-    true  // nav UI already correct from renderCountryDailyMedalChart initial selection
+    true
   )
-  // Immediately sync the selected date highlight on the bar chart
   if (selectedDay) {
     countryDailyChartControls?.selectDate?.(selectedDay.dateStr)
   }
@@ -609,14 +574,12 @@ loadCountryDailyMedalData()
   .then(data => {
     if (!countrySelect || !data.countries.length) return
 
-    // Add a "no country" sentinel as the first option
     countrySelect.innerHTML =
       '<option value="">— Tous les pays —</option>' +
       data.countries
         .map(country => `<option value="${country.code}">${country.label} (${country.code})</option>`)
         .join('')
 
-    // Default: no country selected → line chart mode
     countrySelect.value = ''
     showLineMode()
 
@@ -624,12 +587,10 @@ loadCountryDailyMedalData()
       const code = event.target.value || null
       globalCountryFilter = code
       
-      // Update pie chart instantly if there's a stored date
       _suppressModeSwitch = true
       if (globalSelectedDateStr) {
         syncSelectedDate(globalSelectedDateStr, 'viz6')
       } else {
-        // Just refresh the pie chart outright with the new total country limits
         const newPieData = computeGenderData(null, globalCountryFilter)
         pieControls = renderGenderPieChart('#gender-pie-wrapper', newPieData, handleGenderSelect)
         if (pieControls && globalGenderFilter) pieControls.updateSelection(globalGenderFilter)
@@ -663,7 +624,6 @@ loadCountryDailyMedalData()
             ? [...dailyDateIndex.entries()].find(([, i]) => i === dailyControls?.getIndex())?.[0]
             : null
         : null
-      // Always resolve via computeCountryDailyData so the active gender filter is applied
       const filteredCountryData = computeCountryDailyData(globalGenderFilter)
       selectedCountry = filteredCountryData.countries.find(c => c.code === code) ?? null
       if (selectedCountry) {

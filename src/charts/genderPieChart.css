@@ -36,7 +36,6 @@
   transition: opacity 0.3s ease;
 }
 
-/* Dimming effect when a slice is selected */
 .gender-slice.dimmed,
 .gender-label-text.dimmed,
 .gender-legend-item.dimmed {
