@@ -2,16 +2,8 @@ import * as d3 from 'd3'
 
 const ASSET_BASE = `${import.meta.env.BASE_URL}assets`
 
-/**
- * Loads medals.csv and returns the daily counts of unique gold-medal events.
- * "Unique" means one row per (date × event), so relay teams don't inflate counts.
- * @returns {Promise<Array<{date: Date, count: number, events: string[]}>>}
- */
 let rawDailyCache = null
 
-/**
- * Loads medals.csv and caches it for daily counts.
- */
 export async function loadDailyData () {
   const raw = await d3.csv(`${ASSET_BASE}/data/medals.csv`, d => ({
     type:         d.medal_type.trim(),
@@ -28,9 +20,6 @@ export async function loadDailyData () {
   return buildDailyData(null)
 }
 
-/**
- * Re-builds the daily events data, filtering by gender optionally.
- */
 export function buildDailyData(genderFilter) {
   if (!rawDailyCache) return []
 
@@ -64,13 +53,6 @@ export function buildDailyData(genderFilter) {
   return sorted
 }
 
-/**
- * Renders the daily medal events line chart.
- * @param {string}   containerId  CSS selector of the wrapper div
- * @param {Array}    data         Output of loadDailyData()
- * @param {Function} onDateSelect Callback(dateObj, dayData, index, total) when selection changes
- * @returns {{ prev, next, goTo }} Navigation controls
- */
 export function renderDailyMedalChart (containerId, data, onDateSelect, options = {}) {
   const container = document.querySelector(containerId)
   if (!container) return {}
@@ -80,7 +62,7 @@ export function renderDailyMedalChart (containerId, data, onDateSelect, options 
 
   const margin = { top: 28, right: 32, bottom: 56, left: 56 }
   const width  = containerW
-  const height = Math.max(containerH, 200)   // fill the flex cell, min 200px
+  const height = Math.max(containerH, 200)
   const innerW = width  - margin.left - margin.right
   const innerH = height - margin.top  - margin.bottom
 

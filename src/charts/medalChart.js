@@ -5,9 +5,6 @@ const ASSET_BASE = `${import.meta.env.BASE_URL}assets`
 let rawMedalsCache = null
 let namesCache = null
 
-/**
- * Loads and caches the medals and French country name data.
- */
 export async function loadData () {
   const [medals, names] = await Promise.all([
     d3.csv(`${ASSET_BASE}/data/medals.csv`),
@@ -23,9 +20,6 @@ export async function loadData () {
   return computeMedalTotals(null)
 }
 
-/**
- * Computes unique medals for each country, filtered by gender optionally.
- */
 export function computeMedalTotals (genderFilter) {
   if (!rawMedalsCache) return []
   
@@ -64,11 +58,6 @@ export function computeMedalTotals (genderFilter) {
   return aggregated
 }
 
-/**
- * Renders the horizontal stacked medal bar chart into the given container.
- * @param {string} containerId – CSS selector of the container element.
- * @param {Array}  data        – Merged medal data rows.
- */
 export function renderMedalChart (containerId, data) {
   const sorted = [...data].sort(
     (a, b) =>

@@ -67,10 +67,6 @@ export async function loadCountryDailyMedalData () {
   return computeCountryDailyData(null)
 }
 
-/**
- * Re-computes per-country daily medal data with an optional gender filter.
- * @param {string|null} genderFilter – 'M', 'W', 'X', 'O', or null for all
- */
 export function computeCountryDailyData (genderFilter) {
   if (!rawMedalsForCountry || !countryNamesCache) return { countries: [], allDates: OLYMPIC_DATES }
 
