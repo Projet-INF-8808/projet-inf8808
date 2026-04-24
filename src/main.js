@@ -25,10 +25,10 @@ let dailyDateIndex = new Map()
 let countryDailyChartControls = null
 let globalCountryFilter = null
 let globalSelectedDateStr = null
-let globalCumulativeMode = false   // when true, panels show all-time data
-let _suppressModeSwitch  = false   // prevents internal syncs from exiting cumulative mode
-let _isSyncingSelectedDate = false // prevents viz5/viz6 feedback loops
-let selectedCountry = null         // currently-selected country for the bar chart
+let globalCumulativeMode = false   
+let _suppressModeSwitch  = false   
+let _isSyncingSelectedDate = false 
+let selectedCountry = null         
 
 function syncSelectedDate (dateStr, source) {
   if (!dateStr) return
@@ -86,9 +86,7 @@ function syncSelectedDate (dateStr, source) {
 }
 
 document.querySelector('#app').innerHTML = `
-  <!-- ══════════════════════════════════════════════
-       SECTION 1 — Medal bar chart
-  ══════════════════════════════════════════════ -->
+  <!--Medal bar chart-->
   <section id="section-viz1" class="page-section" aria-label="Graphique des médailles par pays">
     <div class="section-header">
       <h2 class="section-title">Médailles aux Jeux Olympiques d'hiver 2022</h2>
@@ -104,9 +102,7 @@ document.querySelector('#app').innerHTML = `
   <div id="daily-tooltip"   role="tooltip"></div>
   <div id="country-daily-tooltip" role="tooltip"></div>
 
-  <!-- ══════════════════════════════════════════════
-       SECTION 5 — Daily chart + side panels
-  ══════════════════════════════════════════════ -->
+  <!-- Big main area -->
   <section id="section-viz5" class="page-section" aria-label="Évolution journalière des événements médaillés">
     <div class="section-header">
       <h2 class="section-title">Évolution journalière des Jeux olympiques d'hiver 2022</h2>
@@ -115,10 +111,9 @@ document.querySelector('#app').innerHTML = `
       </p>
     </div>
 
-    <!-- 2-col grid: chart left, panels right -->
     <div class="viz5-main-layout">
 
-      <!-- LEFT : selector row + line/bar chart + arrow nav -->
+      <!-- Left section -->
       <div class="viz5-left">
         <!-- Shared control bar: country selector (left) + mode toggle (right) -->
         <div class="daily-country-selector-row">
@@ -149,10 +144,10 @@ document.querySelector('#app').innerHTML = `
         </div>
       </div>
 
-      <!-- RIGHT : 3 stacked panels -->
+      <!-- Right section -->
       <div class="viz5-right">
 
-        <!-- Panel 1 — Sexe (gender pie chart) -->
+        <!-- Pie chart panel -->
         <div class="side-panel" id="panel-sex">
           <div class="side-panel-header">
             <span class="side-panel-title">Sexe</span>
@@ -162,7 +157,7 @@ document.querySelector('#app').innerHTML = `
           </div>
         </div>
 
-        <!-- Panel 2 — Événements (pictogram placeholder) -->
+        <!-- Pictogram panel -->
         <div class="side-panel" id="panel-events">
           <div class="side-panel-header">
             <span class="side-panel-title">Événements</span>
@@ -173,7 +168,7 @@ document.querySelector('#app').innerHTML = `
           </div>
         </div>
 
-        <!-- Panel 3 — Détails (athletes table) -->
+        <!-- Athletes table panel -->
         <div id="athletes-table-section" class="side-panel" aria-label="Athlètes avec plusieurs médailles">
         </div>
 
@@ -297,40 +292,34 @@ function handleGenderSelect (gender) {
   updateAllVisualizations()
 }
 
-//  VIZ 1 — Medal bar chart
+// Medal bar chart
 loadData()
   .then(medalData => {
     renderMedalChart('#medal-chart-wrapper', medalData)
   })
   .catch(err => {
-    console.error('Viz 1 – erreur :', err)
-    document.querySelector('#medal-chart-wrapper').innerHTML = '<p style="color:red;text-align:center">Erreur lors du chargement des données.</p>'
+    console.error('Medal bar chart error :', err)
   })
 
-//  VIZ 2 — Gender Pie Chart
+// Gender Pie Chart
 loadGenderData()
   .then(data => {
     pieControls = renderGenderPieChart('#gender-pie-wrapper', data, handleGenderSelect)
   })
   .catch(err => {
-    console.error('Viz 2 – erreur :', err)
-    document.querySelector('#gender-pie-wrapper').innerHTML = '<p style="color:red;text-align:center">Erreur lors du chargement des données.</p>'
+    console.error('Gender pie chart error :', err)
   })
 
-//  VIZ 4 — Athletes table
+// Athletes table
 loadAthletesTableMedalsData()
   .then(athletesTableData => {
     athletesTableController = initAthletesTable('#athletes-table-section', athletesTableData)
   })
   .catch(err => {
-    console.error('Viz 4 – erreur :', err)
-    const athletesTableSection = document.querySelector('#athletes-table-section')
-    if (athletesTableSection) {
-      athletesTableSection.innerHTML = '<p style="color:red;text-align:center">Erreur lors du chargement des données.</p>'
-    }
+    console.error('Athletes section error :', err)
   })
 
-//  VIZ 5 — Daily medal events + arrow nav
+// Daily medal events + arrow nav
 const fmtLong     = d3.timeFormat('%A %d %B %Y')
 const fmtShort    = d3.timeFormat('%d %B %Y')
 
@@ -401,9 +390,7 @@ loadDailyData()
     }
   })
   .catch(err => {
-    console.error('Viz 5 – erreur :', err)
-    document.querySelector('#daily-chart-wrapper').innerHTML =
-      '<p style="color:red;text-align:center">Erreur lors du chargement des données journalières.</p>'
+    console.error('Daily chart error :', err)
   })
 
   loadSportsPictogramData().then(() => {
@@ -413,10 +400,10 @@ loadDailyData()
       countryFilter: globalCountryFilter
     })
   }).catch(err => {
-    console.error("erreur de chargement du pictogramme:", err)
+    console.error("Sports pictogram error:", err)
   })
 
-//  VIZ 6 — Country daily bar chart (embedded in section 5)
+// Country daily bar chart 
 const countrySelect  = document.getElementById('country-daily-select')
 const countrySummary = document.getElementById('country-daily-country')
 const countryDetail  = document.getElementById('country-daily-detail')
@@ -644,7 +631,5 @@ loadCountryDailyMedalData()
     })
   })
   .catch(err => {
-    console.error('Viz 6 – erreur :', err)
-    document.querySelector('#country-daily-chart-wrapper').innerHTML =
-      '<p style="color:red;text-align:center">Erreur lors du chargement des données par pays.</p>'
+    console.error('Country daily chart error :', err)
   })

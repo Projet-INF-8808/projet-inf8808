@@ -152,13 +152,9 @@ export function initAthletesTable (sectionSelector, rawData) {
 
   const athletesTable = new AthletesTable('#athletes-table-root', rawData, { date: defaultDate })
 
-  // Called by main.js whenever the selected date, country, sex, or mode changes.
-  // Pass null for dateStr in cumulative mode (no date filter).
-  // Pass null for countryCode / sexCode to clear those filters.
   athletesTable.setExternalFilters = ({ dateStr, countryCode, sexCode, cumulative }) => {
     const nextFilters = {}
 
-    // date: '' means no date filter (cumulative), a string means filter to that date
     if (cumulative === true) {
       nextFilters.date = ''
     } else if (dateStr !== undefined) {
@@ -176,7 +172,6 @@ export function initAthletesTable (sectionSelector, rawData) {
     athletesTable.setFilters(nextFilters)
   }
 
-  // Legacy shim kept for compatibility
   athletesTable.setExternalDate = nextDate => {
     athletesTable.setExternalFilters({ dateStr: nextDate ?? '' })
   }
