@@ -2,7 +2,6 @@ import * as d3 from 'd3'
 
 const ASSET_BASE = `${import.meta.env.BASE_URL}assets`
 
-// Raw (unfiltered) medals cache — set once by loadCountryDailyMedalData
 let rawMedalsForCountry = null
 let countryNamesCache = null
 
@@ -61,16 +60,11 @@ export async function loadCountryDailyMedalData () {
 
   countryNamesCache = new Map(countries.map(c => [c.code, c.label]))
 
-  // Keep all valid rows (no dedup yet — dedup happens per-query in computeCountryDailyData)
   rawMedalsForCountry = rawMedals.filter(row => row.medalType && row.dateStr && row.code && row.event)
 
   return computeCountryDailyData(null)
 }
 
-/**
- * Re-computes per-country daily medal data with an optional gender filter.
- * @param {string|null} genderFilter – 'M', 'W', 'X', 'O', or null for all
- */
 export function computeCountryDailyData (genderFilter) {
   if (!rawMedalsForCountry || !countryNamesCache) return { countries: [], allDates: OLYMPIC_DATES }
 
