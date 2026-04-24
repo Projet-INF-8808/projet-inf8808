@@ -62,6 +62,20 @@ export function renderGenderPieChart (containerId, data, onSelect) {
     .style('width', null)
     .style('height', null)
     .attr('class', 'gender-pie-svg')
+    .attr('role', 'img')
+    .attr('aria-label', 'Diagramme circulaire de répartition des médailles par sexe')
+    .attr('aria-describedby', 'gender-pie-desc')
+
+  svg.append('desc')
+    .attr('id', 'gender-pie-desc')
+    .text(
+      'Diagramme en secteurs (camembert). ' +
+      'Chaque secteur représente la proportion des médailles remportées par les athlètes masculins, féminins, en équipes mixtes ou autre, pour la période et le pays sélectionnés. ' +
+      'Les athlètes masculins et féminins totalisent chacun environ la moitié des médailles, avec une légère variation selon la journée sélectionnée. ' +
+      'Les épreuves mixtes, bien que moins nombreuses, sont présentes dans la plupart des disciplines. ' +
+      'Cette répartition quasi équilibrée reflète le programme de parité des Jeux olympiques d\'hiver de Pékin 2022, ' +
+      'qui a introduit davantage d\'épreuves mixtes pour favoriser l\'inclusion.'
+    )
 
   const g = svg.append('g')
     .attr('transform', `translate(${cx}, ${cy})`)

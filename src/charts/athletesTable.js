@@ -357,6 +357,14 @@ export class AthletesTable {
       .attr('class', 'athletes-table-wrapper')
       .append('table')
       .attr('class', 'athletes-table')
+      .attr('role', 'table')
+      .attr('aria-label',
+        'Tableau des athlètes médaillés aux Jeux olympiques d\'hiver de Pékin 2022. ' +
+        'Les colonnes indiquent le nom, le pays, le sexe, le nombre de médailles sur la journée sélectionnée, ' +
+        'le total de médailles sur les Jeux, et le détail par type (Or, Argent, Bronze). ' +
+        'Certains athlètes ont remporté plusieurs médailles sur une même journée, notamment en ski de fond et en biathlon. ' +
+        'Une poignée d\'athlètes totalisent trois médailles ou plus, révélant les grandes stars de ces Jeux.'
+      )
 
     table.append('thead')
       .append('tr')

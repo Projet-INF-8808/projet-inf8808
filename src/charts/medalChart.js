@@ -125,6 +125,8 @@ export function renderMedalChart (containerId, data) {
 
   d3.select(containerId).selectAll('svg').remove()
   
+  const descId = 'medal-chart-desc'
+
   const svg = d3
     .select(containerId)
     .append('svg')
@@ -132,7 +134,20 @@ export function renderMedalChart (containerId, data) {
     .style('width', '100%')
     .style('height', 'auto')
     .attr('role', 'img')
-    .attr('aria-label', 'Graphique des médailles olympiques par pays')
+    .attr('aria-label', 'Graphique en barres empilées horizontales des médailles olympiques par pays')
+    .attr('aria-describedby', descId)
+
+  svg.append('desc')
+    .attr('id', descId)
+    .text(
+      'Graphique en barres empilées horizontales. ' +
+      'L\'axe horizontal représente le nombre de médailles (Or, Argent, Bronze) et l\'axe vertical liste les pays participants aux Jeux olympiques d\'hiver de Pékin 2022. ' +
+      'La Norvège domine le classement avec le plus grand nombre total de médailles, suivie de l\'Allemagne et des États-Unis. ' +
+      'On distingue trois groupes : un peloton de tête composé de 5 à 6 grands pays (Norvège, Allemagne, États-Unis, Suède, Pays-Bas, Autriche), ' +
+      'un groupe intermédiaire d\'environ 10 nations, et un groupe de pays avec peu ou une seule médaille. ' +
+      'Ces résultats reflètent la domination historique des nations nordiques et alpines dans les sports d\'hiver, ' +
+      'mais mettent aussi en lumière des performances notables de pays comme la Chine, pays hôte, et la Corée.'
+    )
 
   const defs = svg.append('defs')
 

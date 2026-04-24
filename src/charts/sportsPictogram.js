@@ -175,7 +175,9 @@ export class SportsPictogram {
           <div class="side-panel-header pictogram-panel-header">
             <span class="side-panel-title pictogram-panel-title">Événements</span>
           </div>
-          <div class="side-panel-body pictogram-grid-wrapper">
+          <div class="side-panel-body pictogram-grid-wrapper"
+               role="region"
+               aria-label="Grille de pictogrammes des disciplines olympiques ayant donné lieu à au moins une médaille pour la période sélectionnée. Plusieurs disciplines concentrent de nombreuses médailles, notamment le ski de fond, le biathlon et le patinage. Survolez un pictogramme pour voir le détail des événements et des pays médaillés.">
             <div class="pictogram-grid"></div>
           </div>
           <div class="side-panel-body pictogram-empty">
@@ -245,7 +247,7 @@ export class SportsPictogram {
 
             card.innerHTML = `
               <div class="pictogram-single-icon-wrap">
-                <img class="pictogram-single-img" src="${discipline.disciplineIcon}"/>
+                <img class="pictogram-single-img" src="${discipline.disciplineIcon}" alt="Pictogramme de ${discipline.disciplineFrenchName}"/>
               </div>
             `;
         }

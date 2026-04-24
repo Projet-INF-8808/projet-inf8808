@@ -174,6 +174,8 @@ export function renderCountryDailyMedalChart (containerSelector, countryData, op
 
   const stackedData = d3.stack().keys(MEDAL_KEYS)(chartData)
 
+  const descId = `viz6-desc-${countryData.code}`
+
   const svg = d3.select(container)
     .append('svg')
     .attr('viewBox', `0 0 ${width} ${height}`)
@@ -181,7 +183,21 @@ export function renderCountryDailyMedalChart (containerSelector, countryData, op
     .style('width', '100%')
     .style('height', '100%')
     .attr('role', 'img')
-    .attr('aria-label', `Médailles quotidiennes pour ${countryData.label}`)
+    .attr('aria-label', `Graphique en barres empilées des médailles quotidiennes pour ${countryData.label}`)
+    .attr('aria-describedby', descId)
+
+  svg.append('desc')
+    .attr('id', descId)
+    .text(
+      `Graphique en barres empilées verticales pour ${countryData.label}. ` +
+      "L'axe horizontal représente les jours des Jeux olympiques d'hiver de Pékin 2022, " +
+      "et l'axe vertical indique le nombre de médailles (Or, Argent, Bronze) remportées chaque jour. " +
+      `${countryData.label} a gagné au total ${countryData.totals.total} médailles : ` +
+      `${countryData.totals.gold} en or, ${countryData.totals.silver} en argent, ${countryData.totals.bronze} en bronze. ` +
+      'Les journées sans médaille alternent avec des pics sur certaines dates, révélant la concentration des performances sur quelques jours clés. ' +
+      'Cette vue permet de suivre la dynamique quotidienne du pays sélectionné tout au long de la compétition, ' +
+      'et de comprendre dans quels types de disciplines ses succès se sont concentrés.'
+    )
 
   const defs = svg.append('defs')
   const filter = defs.append('filter').attr('id', `viz6-glow-${countryData.code}`)
