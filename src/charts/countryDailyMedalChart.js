@@ -429,11 +429,20 @@ function moveTooltip (event) {
 
   const width = node.offsetWidth || 220
   const height = node.offsetHeight || 120
-  let left = event.pageX + 14
-  let top = event.pageY - 28
+  const hasPointerCoords = Number.isFinite(event?.pageX) && Number.isFinite(event?.pageY)
+  const targetRect = event?.currentTarget?.getBoundingClientRect?.()
+  const pageX = hasPointerCoords
+    ? event.pageX
+    : (targetRect ? targetRect.left + window.scrollX + targetRect.width / 2 : window.scrollX + 16)
+  const pageY = hasPointerCoords
+    ? event.pageY
+    : (targetRect ? targetRect.top + window.scrollY + targetRect.height / 2 : window.scrollY + 16)
 
-  if (left + width > window.innerWidth - 12) left = event.pageX - width - 14
-  if (top + height > window.innerHeight - 12) top = event.pageY - height - 8
+  let left = pageX + 14
+  let top = pageY - 28
+
+  if (left + width > window.innerWidth - 12) left = pageX - width - 14
+  if (top + height > window.innerHeight - 12) top = pageY - height - 8
 
   tt.style('left', `${left}px`).style('top', `${top}px`)
 }

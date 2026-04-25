@@ -61,7 +61,10 @@
 
 #country-daily-chart-wrapper {
   width: 100%;
-  overflow-x: auto;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
 }
 
 .viz6-grid .tick line {
@@ -100,9 +103,10 @@
 }
 
 .viz6-segment:hover,
-.viz6-segment:focus {
+.viz6-segment:focus-visible {
   opacity: 0.86;
-  outline: none;
+  stroke: #0d6efd;
+  stroke-width: 2;
 }
 
 .viz6-zero-day-target {
@@ -110,8 +114,10 @@
   cursor: pointer;
 }
 
-.viz6-zero-day-target:focus {
-  outline: none;
+.viz6-zero-day-target:focus-visible {
+  stroke: #0d6efd;
+  stroke-width: 2;
+  stroke-dasharray: 4 3;
 }
 
 .viz6-total-label {

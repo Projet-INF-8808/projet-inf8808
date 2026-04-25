@@ -230,6 +230,12 @@ export class SportsPictogram {
         const card = document.createElement("div");
         card.className = "pictogram-card";
         card.dataset.discipline = discipline.discipline;
+                card.setAttribute('tabindex', '0');
+                card.setAttribute('role', 'button');
+                card.setAttribute(
+                    'aria-label',
+                    `Discipline ${discipline.disciplineFrenchName}, ${discipline.nbMedals} médaille${discipline.nbMedals > 1 ? 's' : ''}. Appuyez pour afficher le détail.`
+                );
 
         if (this.countryFilter && discipline.medals.length === 1) {
             card.classList.add("pictogram-card-naked");
@@ -255,6 +261,18 @@ export class SportsPictogram {
         card.addEventListener("mouseenter", e => this.showToolTip(e, discipline));
         card.addEventListener("mousemove", e => this.positionToolTip(e, discipline));
         card.addEventListener("mouseleave", e => this.hideToolTip(e, discipline));
+        card.addEventListener('focus', e => this.showToolTip(e, discipline));
+        card.addEventListener('blur', () => this.hideToolTip());
+        card.addEventListener('keydown', e => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                this.showToolTip(e, discipline);
+            }
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                this.hideToolTip();
+            }
+        });
 
         return card;
     }
@@ -320,7 +338,7 @@ export class SportsPictogram {
         const medalHTML = winners.map(m => `
         <div class="pictogram-tooltip-event-medal">
             <span class="pictogram-tooltip-dot" style="background:${color}"></span>
-            <img class="pictogram-tooltip-flag-small" src="${ASSET_BASE}/flags/${m.code.toLowerCase()}.svg"/>
+            <img class="pictogram-tooltip-flag-small" src="${ASSET_BASE}/flags/${m.code.toLowerCase()}.svg" alt="" aria-hidden="true"/>
             <span class="pictogram-tooltip-country-name">${m.country}</span>
         </div>    
         `).join("")

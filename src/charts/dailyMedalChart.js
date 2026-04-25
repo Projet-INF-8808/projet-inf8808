@@ -152,6 +152,17 @@ export function renderDailyMedalChart (containerId, data, onDateSelect, options 
     .attr('cx', d => xScale(d.date))
     .attr('cy', d => yScale(d.count))
     .attr('r', 4)
+    .attr('tabindex', 0)
+    .attr('role', 'button')
+    .attr('aria-label', d => {
+      const dateStr = new Intl.DateTimeFormat('fr-FR', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        timeZone: 'UTC'
+      }).format(d.date)
+      return `${dateStr}: ${d.count} événement${d.count > 1 ? 's' : ''}`
+    })
 
   const dateFormat = d3.timeFormat('%d %b')
   g.append('g')
@@ -226,6 +237,18 @@ export function renderDailyMedalChart (containerId, data, onDateSelect, options 
       onDateSelect(d.date, d, selectedIdx, data.length)
     }
   }
+
+  dots
+    .on('click', function (_event, d) {
+      const idx = data.findIndex(row => row.dateStr === d.dateStr)
+      if (idx >= 0) selectIndex(idx)
+    })
+    .on('keydown', function (event, d) {
+      if (event.key !== 'Enter' && event.key !== ' ') return
+      event.preventDefault()
+      const idx = data.findIndex(row => row.dateStr === d.dateStr)
+      if (idx >= 0) selectIndex(idx)
+    })
 
   g.append('rect')
     .attr('class', 'dm-overlay')

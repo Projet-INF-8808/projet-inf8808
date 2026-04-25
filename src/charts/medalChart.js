@@ -112,6 +112,14 @@ export function renderMedalChart (containerId, data) {
 
   const stack = ['gold', 'silver', 'bronze']
 
+  function getElementCenterEvent (element) {
+    const rect = element.getBoundingClientRect()
+    return {
+      pageX: rect.left + window.scrollX + rect.width / 2,
+      pageY: rect.top + window.scrollY + rect.height / 2
+    }
+  }
+
   d3.select(containerId).selectAll('svg').remove()
   
   const descId = 'medal-chart-desc'
@@ -240,6 +248,12 @@ export function renderMedalChart (containerId, data) {
       .attr('ry', 3)
       .attr('fill', medalColors[medal])
       .attr('data-medal', medal)
+      .attr('tabindex', 0)
+      .attr('role', 'button')
+      .attr('aria-label', d => {
+        const labels = { gold: 'or', silver: 'argent', bronze: 'bronze' }
+        return `${d.label} (${d.code}), ${d[medal]} médaille${d[medal] > 1 ? 's' : ''} ${labels[medal]}`
+      })
       .on('mouseenter', function (event, d) {
         showTooltip(event, d, medal)
         d3.select(this).attr('filter', 'url(#glow)')
@@ -250,6 +264,21 @@ export function renderMedalChart (containerId, data) {
       .on('mouseleave', function () {
         hideTooltip()
         d3.select(this).attr('filter', null)
+      })
+      .on('focus', function (_event, d) {
+        const centerEvent = getElementCenterEvent(this)
+        showTooltip(centerEvent, d, medal)
+        d3.select(this).attr('filter', 'url(#glow)')
+      })
+      .on('blur', function () {
+        hideTooltip()
+        d3.select(this).attr('filter', null)
+      })
+      .on('keydown', function (event, d) {
+        if (event.key !== 'Enter' && event.key !== ' ') return
+        event.preventDefault()
+        const centerEvent = getElementCenterEvent(this)
+        showTooltip(centerEvent, d, medal)
       })
       .transition()
       .duration(800)
