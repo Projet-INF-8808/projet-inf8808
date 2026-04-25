@@ -373,8 +373,8 @@ export class SportsPictogram {
     }
 
     hideToolTip() {
-        const toolTip = document.getElementById("pictogram-tooltip");
-        if(toolTip) toolTip.style.display = "none";
+        const toolTip = d3.select("#pictogram-tooltip");
+        if(toolTip) toolTip.style("display", "none");
     }
 
 

@@ -1,27 +1,10 @@
-.pictogram-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 14px;
-  background: var(--bg, #fff);
-  border-bottom: 1px solid var(--border, #e5e4e7);
-}
-
-.pictogram-panel-title {
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  color: var(--text, #6b6375);
-}
-
-.pictogram-grid-wrapper {
+.pictogram-grid-wrapper{
   flex: 1;
-  overflow-y: auto;
   padding: 12px;
+  overflow-y: auto;
 }
 
-.pictogram-grid {
+.pictogram-grid{
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(86px, 1fr));
   gap: 10px;
@@ -34,15 +17,12 @@
   gap: 4px;
   padding: 10px 6px 8px;
   min-height: 115px;
-  background: var(--bg, #fff);
-  border: 1px solid var(--border, #e5e4e7);
+  background: #fff;
+  border: 1px solid #e5e4e7;
   border-radius: 10px;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
-  animation: fadeInCard 0.35s ease both;
 }
 
 .pictogram-card:hover {
-  transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   border-color: #C59B4E;
 }
@@ -67,11 +47,6 @@
   background: transparent;
 }
 
-@keyframes fadeInCard {
-  from { opacity: 0; transform: translateY(6px) scale(0.96); }
-  to { opacity: 1; transform: none; }
-}
-
 .pictogram-icon-wrap {
   width: 56px;
   height: 56px;
@@ -85,11 +60,6 @@
   height: 48px;
   object-fit: contain;
   display: block;
-  transition: transform 0.2s ease;
-}
-
-.pictogram-card:hover .pictogram-icon {
-  transform: scale(1.08);
 }
 
 .pictogram-single-icon-wrap {
@@ -126,24 +96,33 @@
   transform: scale(1.08);
 }
 
-.pictogram-card-name {
-  font-size: 9.5px;
-  font-weight: 600;
-  color: var(--text, #6b6375);
-  text-align: center;
-  line-height: 1.2;
-  max-width: 70px;
-  word-break: break-word;
+.pictogram-empty {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding: 24px;
 }
 
-.pictogram-card:hover .pictogram-card-name {
-  color: #08060d;
+.pictogram-empty-text {
+  font-size: 13px;
+  font-style: italic;
+  color: #6b6375;
+}
+
+.pictogram-card-name {
+  font-size: 9px;
+  font-weight: bold;
+  color: #6b6375;
+  text-align: center;
+  max-width: 70px;
 }
 
 .pictogram-medals {
   display: flex;
-  flex-wrap: wrap;
   justify-content: center;
+  flex-wrap: wrap;
   gap: 3px;
   width: 100%;
   min-height: 8px;
@@ -157,35 +136,18 @@
   height: 7px;
   border-radius: 50%;
   flex-shrink: 0;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
-}
-
-.pictogram-empty {
-  display: none;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  flex: 1;
-  padding: 24px;
-}
-
-.pictogram-empty-text {
-  font-size: 13px;
-  font-style: italic;
-  color: var(--text, #6b6375);
 }
 
 .pictogram-tooltip {
   position: fixed;
-  z-index: 9999;
-  background: var(--bg, #ffffff);
-  border: 1px solid var(--border, #e5e4e7);
+  display: none;
+  z-index: 99999;
+  width:260px;
+  background: #ffffff;
+  border: 1px solid #e5e4e7;
   border-radius: 8px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-  width: 260px;
-  pointer-events: none;
   font-family: inherit;
-  display: none; 
+  pointer-events: none;
 }
 
 .pictogram-tooltip-header {
@@ -194,30 +156,29 @@
   align-items: center;
   padding: 10px 14px;
   background: #f8f9fa;
-  border-bottom: 1px solid var(--border, #e5e4e7);
+  border-bottom: 1px solid #e5e4e7;
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
 }
 
 .pictogram-tooltip-discipline {
-  font-weight: 700;
+  font-weight: bold;
   font-size: 13px;
   color: #08060d;
 }
 
 .pictogram-tooltip-date {
+  font-weight: bold;
   font-size: 11px;
-  font-weight: 600;
-  color: var(--text, #6b6375);
+  color: #08060d;
 }
 
 .pictogram-tooltip-events-container {
-  padding: 12px 14px;
   display: flex;
   flex-direction: column;
   gap: 14px;
+  padding: 12px 14px;
   max-height: 320px;
-  overflow-y: auto;
 }
 
 .pictogram-tooltip-event-group {
@@ -227,10 +188,9 @@
 }
 
 .pictogram-tooltip-event-name {
-  font-size: 11.5px;
-  font-weight: 700;
   color: #3b3644;
-  line-height: 1.3;
+  font-size: 11.5px;
+  font-weight: bold;
 }
 
 .pictogram-tooltip-event-winners {
@@ -244,7 +204,7 @@
   align-items: center;
   gap: 8px;
   font-size: 11px;
-  color: var(--text, #6b6375);
+  color: #6b6375;
 }
 
 .pictogram-tooltip-dot {
@@ -252,16 +212,15 @@
   height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15);
 }
 
 .pictogram-tooltip-flag-small {
   width: 18px;
   height: 13px;
-  object-fit: cover;
-  border-radius: 2px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
   background: #f0f0f0;
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 2px;
+  object-fit: cover;
 }
 
 .pictogram-tooltip-country-name {
@@ -272,7 +231,7 @@
 .pictogram-tooltip-empty {
   font-size: 12px;
   font-style: italic;
-  color: var(--text, #6b6375);
+  color: #6b6375;
   text-align: center;
-  padding: 10px 0;
+  padding: 10px 0px;
 }

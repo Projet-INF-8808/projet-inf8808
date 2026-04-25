@@ -163,8 +163,6 @@ document.querySelector('#app').innerHTML = `
             <span class="side-panel-title">Événements</span>
           </div>
           <div class="side-panel-body side-panel-placeholder">
-            <span class="placeholder-icon">🎿</span>
-            <span class="placeholder-text">Pictogramme à venir</span>
           </div>
         </div>
 
