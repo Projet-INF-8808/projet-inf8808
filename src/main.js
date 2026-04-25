@@ -328,7 +328,7 @@ loadAthletesTableMedalsData()
 
 // Daily medal events + arrow nav
 const fmtLong     = d3.timeFormat('%A %d %B %Y')
-const fmtShort    = d3.timeFormat('%d %B %Y')
+const fmtShort    = date => `${date.getDate()} Février ${date.getFullYear()}`
 
 const btnPrev     = document.getElementById('btn-prev')
 const btnNext     = document.getElementById('btn-next')
@@ -418,7 +418,7 @@ const countryDetail  = document.getElementById('country-daily-detail')
 const lineWrapper    = document.getElementById('daily-chart-wrapper')
 const barWrapper     = document.getElementById('country-daily-chart-wrapper')
 
-const fmtViz6Date = d3.timeFormat('%d %B %Y')
+const fmtViz6Date = date => `${date.getDate()} Février ${date.getFullYear()}`
 
 function activeChartControls () {
   return barWrapper?.style.display !== 'none' ? barNavControls : dailyControls

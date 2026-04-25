@@ -164,14 +164,14 @@ export function renderDailyMedalChart (containerId, data, onDateSelect, options 
       return `${dateStr}: ${d.count} événement${d.count > 1 ? 's' : ''}`
     })
 
-  const dateFormat = d3.timeFormat('%d %b')
+  const tickDayFormat = d3.timeFormat('%-d')
   g.append('g')
     .attr('class', 'dm-axis dm-axis-x')
     .attr('transform', `translate(0,${innerH})`)
     .call(
       d3.axisBottom(xScale)
         .ticks(data.length)
-        .tickFormat(dateFormat)
+        .tickFormat(d => `${tickDayFormat(d)} Févr`)
     )
     .call(ax => ax.select('.domain').remove())
     .selectAll('text')

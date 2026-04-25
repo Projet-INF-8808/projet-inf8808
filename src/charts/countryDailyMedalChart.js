@@ -142,8 +142,7 @@ export function renderCountryDailyMedalChart (containerSelector, countryData, op
 
   const onDateSelect = options.onDateSelect
   const selectedDateStr = options.selectedDateStr
-  const data = countryData.daily
-  const chartData = data
+  const chartData = countryData.daily
 
   d3.select(container).selectAll('svg').remove()
 
@@ -206,14 +205,14 @@ export function renderCountryDailyMedalChart (containerSelector, countryData, op
     )
     .call(axis => axis.select('.domain').remove())
 
-  const dateFormat = d3.timeFormat('%d %b')
+  const tickDayFormat = d3.timeFormat('%-d')
 
   g.append('g')
     .attr('class', 'viz6-axis viz6-axis-x')
     .attr('transform', `translate(0,${innerH})`)
     .call(
       d3.axisBottom(xScale)
-        .tickFormat(dateStr => dateFormat(toDate(dateStr)))
+        .tickFormat(dateStr => `${tickDayFormat(toDate(dateStr))} Févr`)
     )
     .call(axis => axis.select('.domain').remove())
     .selectAll('text')
