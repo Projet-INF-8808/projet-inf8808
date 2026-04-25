@@ -257,22 +257,6 @@ export class SportsPictogram {
         return card;
     }
 
-    createMedalDots(discipline) {
-        const medals = [
-            {type: "Gold", count: discipline.nbGold, color: MEDAL_COLORS.gold},
-            {type: "Silver", count: discipline.nbSilver, color: MEDAL_COLORS.silver},
-            {type: "Bronze", count: discipline.nbBronze, color: MEDAL_COLORS.bronze}
-        ]
-
-        const medalDots = medals.filter(medal => medal.count > 0).map(medal => 
-            Array.from({ length: medal.count }, () => 
-                `<span class="pictogram-medal-dot" style="background: ${medal.color}"></span>`
-            ).join('')
-        ).join('');
-
-        return medalDots;
-    }
-
     showToolTip(event, discipline) {
         let tooltip = document.getElementById("pictogram-tooltip");
 

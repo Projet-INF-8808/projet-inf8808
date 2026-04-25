@@ -236,7 +236,6 @@ modeTabCumul.addEventListener('click', () => {
 
 let globalGenderFilter = null
 let pieControls = null
-let dailyChartControls = null
 
 function updateAllVisualizations () {
   if (pieControls) {
@@ -320,49 +319,18 @@ loadAthletesTableMedalsData()
   })
 
 // Daily medal events + arrow nav
-const fmtLong     = d3.timeFormat('%A %d %B %Y')
 const fmtShort    = d3.timeFormat('%d %B %Y')
 
 const btnPrev     = document.getElementById('btn-prev')
 const btnNext     = document.getElementById('btn-next')
 const navDate     = document.getElementById('time-nav-date')
 const navProgress = document.getElementById('time-nav-progress')
-const detailPanel = document.getElementById('daily-detail')
 
 function updateNavUI (index, total, dayData) {
   btnPrev.disabled = index <= 0
   btnNext.disabled = index >= total - 1
   navDate.textContent     = fmtShort(dayData.date)
   navProgress.textContent = `Jour ${index + 1} / ${total}`
-}
-
-function renderDetailPanel (dayData) {
-  if (!detailPanel || !dayData) return
-
-  const cards = dayData.events.map(e => `
-    <div class="dd-card">
-      <img class="dd-card-flag"
-           src="${ASSET_BASE}/flags/${e.code.toLowerCase()}.svg"
-           alt="${e.code}"
-           onerror="this.style.display='none'" />
-      <div class="dd-card-info">
-        <div class="dd-card-event">${e.event}</div>
-        <div class="dd-card-discipline">${e.discipline} · ${e.country}</div>
-      </div>
-      <div class="dd-medal-dot" title="Or" aria-label="Médaille d'or"></div>
-    </div>
-  `).join('')
-
-  detailPanel.innerHTML = `
-    <div class="side-panel-header">
-      <span class="side-panel-title">Événements du jour</span>
-      <span class="dd-badge">${dayData.count} événement${dayData.count > 1 ? 's' : ''}</span>
-    </div>
-    <div class="side-panel-body">
-      <div class="dd-date-label">${fmtLong(dayData.date)}</div>
-      <div class="dd-grid">${cards}</div>
-    </div>
-  `
 }
 
 loadDailyData()
@@ -373,7 +341,6 @@ loadDailyData()
       '#daily-chart-wrapper',
       data,
       (_date, dayData, index, total) => {
-        renderDetailPanel(dayData)
         updateNavUI(index, total, dayData)
         syncSelectedDate(d3.timeFormat('%Y-%m-%d')(dayData.date), 'viz5')
       }
@@ -406,7 +373,6 @@ loadDailyData()
 // Country daily bar chart 
 const countrySelect  = document.getElementById('country-daily-select')
 const countrySummary = document.getElementById('country-daily-country')
-const countryDetail  = document.getElementById('country-daily-detail')
 
 const lineWrapper    = document.getElementById('daily-chart-wrapper')
 const barWrapper     = document.getElementById('country-daily-chart-wrapper')
@@ -435,49 +401,6 @@ function showBarMode (countryData) {
   }
 }
 
-function renderCountryDailyDetail (countryData, dayData) {
-  if (!countryDetail || !countryData || !dayData) return
-
-  const medalEvents = dayData.medals
-    .sort((a, b) => a.medalType.localeCompare(b.medalType) || a.discipline.localeCompare(b.discipline))
-    .map(medal => {
-      const label = medal.medalType === 'gold' ? 'Or' : medal.medalType === 'silver' ? 'Argent' : 'Bronze'
-      return `
-        <div class="country-daily-event">
-          <div class="country-daily-event-name">${medal.event}</div>
-          <div class="country-daily-event-meta">${medal.discipline} · ${label}</div>
-        </div>
-      `
-    })
-    .join('')
-
-  countryDetail.innerHTML = `
-    <div class="country-daily-panel-header">
-      <span class="country-daily-panel-title">Date sélectionnée</span>
-      <span class="country-daily-badge">${dayData.total} médaille${dayData.total > 1 ? 's' : ''}</span>
-    </div>
-    <div class="country-daily-panel-body">
-      <div class="country-daily-date">${fmtViz6Date(dayData.date)}</div>
-      <div class="country-daily-stats">
-        <div class="country-daily-stat">
-          <span class="country-daily-stat-label"><span class="country-daily-stat-dot" style="background:#FFD700"></span>Or</span>
-          <span class="country-daily-stat-value">${dayData.gold}</span>
-        </div>
-        <div class="country-daily-stat">
-          <span class="country-daily-stat-label"><span class="country-daily-stat-dot" style="background:#C0C0C0"></span>Argent</span>
-          <span class="country-daily-stat-value">${dayData.silver}</span>
-        </div>
-        <div class="country-daily-stat">
-          <span class="country-daily-stat-label"><span class="country-daily-stat-dot" style="background:#CD7F32"></span>Bronze</span>
-          <span class="country-daily-stat-value">${dayData.bronze}</span>
-        </div>
-      </div>
-      <div class="country-daily-events">
-        ${medalEvents || '<p class="country-daily-empty">Aucune médaille pour cette date.</p>'}
-      </div>
-    </div>
-  `
-}
 
 function buildBarControls (countryData, currentDateStr, onSelect, skipInitialSelect) {
   const dates = countryData.daily.map(d => d.dateStr)
@@ -541,13 +464,10 @@ function renderCountryDailyCountry (countryData, selectedDateStr) {
     }
   )
 
-  renderCountryDailyDetail(countryData, selectedDay)
-
   barNavControls = buildBarControls(
     countryData,
     selectedDay?.dateStr,
     dayData => {
-      renderCountryDailyDetail(countryData, dayData)
       syncSelectedDate(dayData.dateStr, 'viz6')
     },
     true
@@ -600,8 +520,7 @@ loadCountryDailyMedalData()
         selectedCountry = null
         showLineMode()
         if (dailyControls) {
-          const idx   = dailyControls.getIndex()
-          const total = dailyControls.total
+          const idx = dailyControls.getIndex()
           dailyControls.goTo(idx)
         }
         return
@@ -625,7 +544,6 @@ loadCountryDailyMedalData()
       const selectedDay = selectedCountry.daily.find(day => day.dateStr === dateStr)
       if (!selectedDay) return
       countryDailyChartControls?.selectDate?.(dateStr)
-      renderCountryDailyDetail(selectedCountry, selectedDay)
       const i = selectedCountry.daily.findIndex(d => d.dateStr === dateStr)
       if (i >= 0) barNavControls?.goTo(i)
     })
