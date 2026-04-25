@@ -85,7 +85,20 @@ export function renderDailyMedalChart (containerId, data, onDateSelect, options 
     .style('width', '100%')
     .style('height', '100%')
     .attr('role', 'img')
-    .attr('aria-label', "Graphique des événements médaillés par jour")
+    .attr('aria-label', "Graphique linéaire du nombre d'événements médaillés par jour")
+    .attr('aria-describedby', 'daily-chart-desc')
+
+  svg.append('desc')
+    .attr('id', 'daily-chart-desc')
+    .text(
+      'Graphique linéaire avec zone ombrée. ' +
+      "L'axe horizontal représente les dates des Jeux olympiques d'hiver de Pékin 2022 (du 5 au 20 février 2022), " +
+      "et l'axe vertical représente le nombre d'événements finals médaillés (attribution de médailles d'or uniquement). " +
+      "Le nombre d'événements augmente progressivement au fil des journées, avec des pics notables en milieu et en fin de compétition. " +
+      "Les premiers jours concentrent peu d'épreuves finales, tandis que les dernières journées voient une accélération du rythme des finales. " +
+      "Cette progression reflète le calendrier typique olympique, où les épreuves qualificatives précèdent les finales, " +
+      "qui s'accumulent vers la clôture des Jeux."
+    )
 
   const defs = svg.append('defs')
 
@@ -139,15 +152,26 @@ export function renderDailyMedalChart (containerId, data, onDateSelect, options 
     .attr('cx', d => xScale(d.date))
     .attr('cy', d => yScale(d.count))
     .attr('r', 4)
+    .attr('tabindex', 0)
+    .attr('role', 'button')
+    .attr('aria-label', d => {
+      const dateStr = new Intl.DateTimeFormat('fr-FR', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        timeZone: 'UTC'
+      }).format(d.date)
+      return `${dateStr}: ${d.count} événement${d.count > 1 ? 's' : ''}`
+    })
 
-  const dateFormat = d3.timeFormat('%d %b')
+  const tickDayFormat = d3.timeFormat('%-d')
   g.append('g')
     .attr('class', 'dm-axis dm-axis-x')
     .attr('transform', `translate(0,${innerH})`)
     .call(
       d3.axisBottom(xScale)
         .ticks(data.length)
-        .tickFormat(dateFormat)
+        .tickFormat(d => `${tickDayFormat(d)} Févr`)
     )
     .call(ax => ax.select('.domain').remove())
     .selectAll('text')
@@ -213,6 +237,18 @@ export function renderDailyMedalChart (containerId, data, onDateSelect, options 
       onDateSelect(d.date, d, selectedIdx, data.length)
     }
   }
+
+  dots
+    .on('click', function (_event, d) {
+      const idx = data.findIndex(row => row.dateStr === d.dateStr)
+      if (idx >= 0) selectIndex(idx)
+    })
+    .on('keydown', function (event, d) {
+      if (event.key !== 'Enter' && event.key !== ' ') return
+      event.preventDefault()
+      const idx = data.findIndex(row => row.dateStr === d.dateStr)
+      if (idx >= 0) selectIndex(idx)
+    })
 
   g.append('rect')
     .attr('class', 'dm-overlay')

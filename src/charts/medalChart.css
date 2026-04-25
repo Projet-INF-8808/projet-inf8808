@@ -33,6 +33,12 @@
   transition: filter 0.2s ease;
   cursor: pointer;
 }
+
+.bar:focus-visible {
+  stroke: #0d6efd;
+  stroke-width: 2px;
+}
+
 .country-flag {
   border-radius: 2px;
   filter: drop-shadow(0 1px 2px rgba(0,0,0,0.18));

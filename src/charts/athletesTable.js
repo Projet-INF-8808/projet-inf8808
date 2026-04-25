@@ -11,24 +11,6 @@ const SEX_MAP = {
   O: 'Autre'
 }
 
-const DISCIPLINE_MAP = {
-  Biathlon: 'Biathlon',
-  'Cross-Country Skiing': 'Ski de fond',
-  'Freestyle Skiing': 'Ski acrobatique',
-  'Short Track Speed Skating': 'Patinage de vitesse sur piste courte',
-  'Speed Skating': 'Patinage de vitesse',
-  'Figure Skating': 'Patinage artistique',
-  Curling: 'Curling',
-  Luge: 'Luge',
-  Skeleton: 'Skeleton',
-  Bobsleigh: 'Bobsleigh',
-  Snowboard: 'Snowboard',
-  'Ski Jumping': 'Saut a ski',
-  'Alpine Skiing': 'Ski alpin',
-  'Nordic Combined': 'Combine nordique',
-  'Ice Hockey': 'Hockey sur glace'
-}
-
 const DAY_MEDAL_LABELS = {
   Gold: 'Or',
   Silver: 'Argent',
@@ -49,11 +31,6 @@ function normalizeMedalType (rawType) {
   if (medal === 'silver') return 'Silver'
   if (medal === 'bronze') return 'Bronze'
   return null
-}
-
-function normalizeDiscipline (rawDiscipline) {
-  const discipline = (rawDiscipline ?? '').trim()
-  return DISCIPLINE_MAP[discipline] ?? discipline
 }
 
 function formatDayMedalDetails (row) {
@@ -105,8 +82,6 @@ export async function loadAthletesTableMedalsData () {
       athlete_sex: normalizeSex(d.athlete_sex),
       country: (d.country ?? '').trim(),
       country_code: (d.country_code ?? '').trim(),
-      discipline: normalizeDiscipline(d.discipline),
-      event: (d.event ?? '').trim(),
       medal_type: normalizeMedalType(d.medal_type)
     })),
     d3.csv(`${ASSET_BASE}/data/country_names_french.csv`, d => ({
@@ -125,30 +100,26 @@ export async function loadAthletesTableMedalsData () {
     }))
 }
 
-export function getAthletesTableFilterOptions (rows) {
-  return {
-    dates: Array.from(new Set(rows.map(d => d.medal_date))).sort((a, b) => a.localeCompare(b)),
-    countries: Array.from(new Set(rows.map(d => d.country))).sort((a, b) => a.localeCompare(b)),
-    sexes: Array.from(new Set(rows.map(d => d.athlete_sex))).sort((a, b) => a.localeCompare(b)),
-    disciplines: Array.from(new Set(rows.map(d => d.discipline))).sort((a, b) => a.localeCompare(b))
-  }
-}
-
 export function initAthletesTable (sectionSelector, rawData) {
   const section = document.querySelector(sectionSelector)
   if (!section) return null
 
-  section.innerHTML = `
-    <div class="side-panel-header">
-      <span class="side-panel-title">Athlètes avec plusieurs médailles</span>
-    </div>
-    <div class="side-panel-body">
-      <div id="athletes-table-root"></div>
-    </div>
-  `
+  const sectionRoot = d3.select(section)
+  sectionRoot.html('')
 
-  const options = getAthletesTableFilterOptions(rawData)
-  const defaultDate = options.dates[0] ?? ''
+  sectionRoot.append('div')
+    .attr('class', 'side-panel-header')
+    .append('span')
+    .attr('class', 'side-panel-title')
+    .text('Athlètes avec plusieurs médailles')
+
+  sectionRoot.append('div')
+    .attr('class', 'side-panel-body')
+    .append('div')
+    .attr('id', 'athletes-table-root')
+
+  const defaultDate = Array.from(new Set(rawData.map(d => d.medal_date)))
+    .sort((a, b) => a.localeCompare(b))[0] ?? ''
 
   const athletesTable = new AthletesTable('#athletes-table-root', rawData, { date: defaultDate })
 
@@ -172,10 +143,6 @@ export function initAthletesTable (sectionSelector, rawData) {
     athletesTable.setFilters(nextFilters)
   }
 
-  athletesTable.setExternalDate = nextDate => {
-    athletesTable.setExternalFilters({ dateStr: nextDate ?? '' })
-  }
-
   return athletesTable
 }
 
@@ -185,23 +152,21 @@ export class AthletesTable {
     this.rawData = rawData
     this.filters = {
       date: '',
-      country: TOUS,
+      country_code: TOUS,
       sex: TOUS,
-      discipline: TOUS,
       ...initialFilters
     }
 
     this.columns = [
-      { key: 'athlete_name', label: 'Athlete', type: 'text', sortable: false },
-      { key: 'country', label: 'Pays', type: 'text', sortable: false },
-      { key: 'athlete_sex', label: 'Sexe', type: 'text', sortable: false },
-      { key: 'medals_on_selected_day', label: 'Médailles (jour)', type: 'number', sortable: false },
-      { key: 'total_medals_all_games', label: 'Total médailles', type: 'number', sortable: false },
-      { key: 'gold_total', label: 'Or', type: 'number', sortable: false },
-      { key: 'silver_total', label: 'Argent', type: 'number', sortable: false },
-      { key: 'bronze_total', label: 'Bronze', type: 'number', sortable: false }
+      { key: 'athlete_name', label: 'Athlete' },
+      { key: 'country', label: 'Pays' },
+      { key: 'athlete_sex', label: 'Sexe' },
+      { key: 'medals_on_selected_day', label: 'Médailles (jour)' },
+      { key: 'total_medals_all_games', label: 'Total médailles' },
+      { key: 'gold_total', label: 'Or' },
+      { key: 'silver_total', label: 'Argent' },
+      { key: 'bronze_total', label: 'Bronze' }
     ]
-    this.sortState = null
 
     this.allTimeByAthlete = this.computeAllTimeTotals(rawData)
     this.renderShell()
@@ -237,79 +202,23 @@ export class AthletesTable {
     this.render()
   }
 
-  toggleSort (columnKey) {
-    const column = this.columns.find(col => col.key === columnKey)
-    if (!column || column.sortable === false) return
-
-    if (!this.sortState || this.sortState.key !== columnKey) {
-      this.sortState = { key: columnKey, direction: 'asc' }
-    } else {
-      this.sortState = {
-        key: columnKey,
-        direction: this.sortState.direction === 'asc' ? 'desc' : 'asc'
-      }
-    }
-
-    this.render()
-  }
-
-  resetSort () {
-    this.sortState = null
-    this.render()
-  }
-
-  applySort (rows) {
-    const getSortValue = (row, key) => {
-      if (key === 'athlete_name') return row.athlete_display_name
-      return row[key]
-    }
-
-    if (!this.sortState) {
-      return rows.sort((a, b) =>
-        b.total_medals_all_games - a.total_medals_all_games ||
-        b.medals_on_selected_day - a.medals_on_selected_day ||
-        b.gold_total - a.gold_total ||
-        a.athlete_display_name.localeCompare(b.athlete_display_name, 'fr')
-      )
-    }
-
-    const { key, direction } = this.sortState
-    const column = this.columns.find(col => col.key === key)
-    const multiplier = direction === 'asc' ? 1 : -1
-
-    return rows.sort((a, b) => {
-      if (!column || column.type === 'text') {
-        const textCompare = String(getSortValue(a, key)).localeCompare(String(getSortValue(b, key)), 'fr')
-        if (textCompare !== 0) return textCompare * multiplier
-      } else {
-        const numericCompare = (Number(getSortValue(a, key)) - Number(getSortValue(b, key)))
-        if (numericCompare !== 0) return numericCompare * multiplier
-      }
-
-      return (
-        b.total_medals_all_games - a.total_medals_all_games ||
-        b.medals_on_selected_day - a.medals_on_selected_day ||
-        b.gold_total - a.gold_total ||
-        a.athlete_display_name.localeCompare(b.athlete_display_name, 'fr')
-      )
-    })
-  }
-
-  updateSortIndicators () {
-    this.root.selectAll('thead th')
-      .classed('is-sorted-asc', d => this.sortState?.key === d.key && this.sortState.direction === 'asc')
-      .classed('is-sorted-desc', d => this.sortState?.key === d.key && this.sortState.direction === 'desc')
+  sortRows (rows) {
+    return rows.sort((a, b) =>
+      b.total_medals_all_games - a.total_medals_all_games ||
+      b.medals_on_selected_day - a.medals_on_selected_day ||
+      b.gold_total - a.gold_total ||
+      a.athlete_display_name.localeCompare(b.athlete_display_name, 'fr')
+    )
   }
 
   buildRows () {
-    const { date, country_code, sex, discipline } = this.filters
+    const { date, country_code, sex } = this.filters
 
     const filtered = this.rawData.filter(row => {
       const dateMatch    = !date         || row.medal_date      === date
       const countryMatch = !country_code || country_code === TOUS || row.country_code === country_code
       const sexMatch     = sex === TOUS  || row.athlete_sex     === sex
-      const disciplineMatch = discipline === TOUS || row.discipline === discipline
-      return dateMatch && countryMatch && sexMatch && disciplineMatch
+      return dateMatch && countryMatch && sexMatch
     })
 
     const byAthlete = new Map()
@@ -342,7 +251,7 @@ export class AthletesTable {
       athleteRow.day_medal_counts[row.medal_type] += 1
     })
 
-    return this.applySort(Array.from(byAthlete.values()))
+    return this.sortRows(Array.from(byAthlete.values()))
   }
 
   renderShell () {
@@ -352,6 +261,14 @@ export class AthletesTable {
       .attr('class', 'athletes-table-wrapper')
       .append('table')
       .attr('class', 'athletes-table')
+      .attr('role', 'table')
+      .attr('aria-label',
+        'Tableau des athlètes médaillés aux Jeux olympiques d\'hiver de Pékin 2022. ' +
+        'Les colonnes indiquent le nom, le pays, le sexe, le nombre de médailles sur la journée sélectionnée, ' +
+        'le total de médailles sur les Jeux, et le détail par type (Or, Argent, Bronze). ' +
+        'Certains athlètes ont remporté plusieurs médailles sur une même journée, notamment en ski de fond et en biathlon. ' +
+        'Une poignée d\'athlètes totalisent trois médailles ou plus, révélant les grandes stars de ces Jeux.'
+      )
 
     table.append('thead')
       .append('tr')
@@ -359,8 +276,6 @@ export class AthletesTable {
       .data(this.columns)
       .join('th')
       .attr('scope', 'col')
-      .attr('class', d => (d.sortable === false ? '' : 'is-sortable'))
-      .on('click', (_, d) => this.toggleSort(d.key))
       .text(d => d.label)
 
     table.append('tbody')
@@ -368,8 +283,6 @@ export class AthletesTable {
 
   render () {
     const rows = this.buildRows()
-
-    this.updateSortIndicators()
 
     const tableRows = this.root.select('tbody')
       .selectAll('tr')

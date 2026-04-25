@@ -86,6 +86,7 @@ function syncSelectedDate (dateStr, source) {
 }
 
 document.querySelector('#app').innerHTML = `
+  <main id="contenu-principal">
   <!--Medal bar chart-->
   <section id="section-viz1" class="page-section" aria-label="Graphique des médailles par pays">
     <div class="section-header">
@@ -100,7 +101,6 @@ document.querySelector('#app').innerHTML = `
   <!-- tooltips (fixed-position, can live anywhere) -->
   <div id="medal-tooltip"   role="tooltip"></div>
   <div id="daily-tooltip"   role="tooltip"></div>
-  <div id="country-daily-tooltip" role="tooltip"></div>
 
   <!-- Big main area -->
   <section id="section-viz5" class="page-section" aria-label="Évolution journalière des événements médaillés">
@@ -125,8 +125,8 @@ document.querySelector('#app').innerHTML = `
           <div class="panels-mode-bar">
             <span class="panels-mode-label">Affichage&nbsp;:</span>
             <div class="mode-pill">
-              <button class="mode-tab is-active" id="mode-tab-date">Par journ&eacute;e</button>
-              <button class="mode-tab" id="mode-tab-cumul">Cumulatif</button>
+              <button class="mode-tab is-active" id="mode-tab-date" aria-pressed="true">Par journ&eacute;e</button>
+              <button class="mode-tab" id="mode-tab-cumul" aria-pressed="false">Cumulatif</button>
             </div>
           </div>
         </div>
@@ -163,8 +163,6 @@ document.querySelector('#app').innerHTML = `
             <span class="side-panel-title">Événements</span>
           </div>
           <div class="side-panel-body side-panel-placeholder">
-            <span class="placeholder-icon">🎿</span>
-            <span class="placeholder-text">Pictogramme à venir</span>
           </div>
         </div>
 
@@ -175,11 +173,17 @@ document.querySelector('#app').innerHTML = `
       </div>
     </div>
   </section>
+  </main>
 `
 
 mountLanding()
 const modeTabDate  = document.getElementById('mode-tab-date')
 const modeTabCumul = document.getElementById('mode-tab-cumul')
+
+function updateModeTabAriaPressed () {
+  modeTabDate?.setAttribute('aria-pressed', globalCumulativeMode ? 'false' : 'true')
+  modeTabCumul?.setAttribute('aria-pressed', globalCumulativeMode ? 'true' : 'false')
+}
 
 function setTimeNavVisible (visible) {
   const timeNav = document.getElementById('time-nav')
@@ -190,6 +194,7 @@ function switchToDailyMode () {
   globalCumulativeMode = false
   modeTabDate.classList.add('is-active')
   modeTabCumul.classList.remove('is-active')
+  updateModeTabAriaPressed()
   setTimeNavVisible(true)
 }
 
@@ -224,6 +229,7 @@ modeTabDate.addEventListener('click', () => {
   globalCumulativeMode = false
   modeTabDate.classList.add('is-active')
   modeTabCumul.classList.remove('is-active')
+  updateModeTabAriaPressed()
   applyPanelMode()
 })
 modeTabCumul.addEventListener('click', () => {
@@ -231,6 +237,7 @@ modeTabCumul.addEventListener('click', () => {
   globalCumulativeMode = true
   modeTabCumul.classList.add('is-active')
   modeTabDate.classList.remove('is-active')
+  updateModeTabAriaPressed()
   applyPanelMode()
 })
 
@@ -319,7 +326,8 @@ loadAthletesTableMedalsData()
   })
 
 // Daily medal events + arrow nav
-const fmtShort    = d3.timeFormat('%d %B %Y')
+const fmtLong     = d3.timeFormat('%A %d %B %Y')
+const fmtShort    = date => `${date.getDate()} Février ${date.getFullYear()}`
 
 const btnPrev     = document.getElementById('btn-prev')
 const btnNext     = document.getElementById('btn-next')
@@ -377,7 +385,7 @@ const countrySummary = document.getElementById('country-daily-country')
 const lineWrapper    = document.getElementById('daily-chart-wrapper')
 const barWrapper     = document.getElementById('country-daily-chart-wrapper')
 
-const fmtViz6Date = d3.timeFormat('%d %B %Y')
+const fmtViz6Date = date => `${date.getDate()} Février ${date.getFullYear()}`
 
 function activeChartControls () {
   return barWrapper?.style.display !== 'none' ? barNavControls : dailyControls

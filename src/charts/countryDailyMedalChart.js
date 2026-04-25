@@ -142,8 +142,7 @@ export function renderCountryDailyMedalChart (containerSelector, countryData, op
 
   const onDateSelect = options.onDateSelect
   const selectedDateStr = options.selectedDateStr
-  const data = countryData.daily
-  const chartData = data
+  const chartData = countryData.daily
 
   d3.select(container).selectAll('svg').remove()
 
@@ -168,6 +167,8 @@ export function renderCountryDailyMedalChart (containerSelector, countryData, op
 
   const stackedData = d3.stack().keys(MEDAL_KEYS)(chartData)
 
+  const descId = `viz6-desc-${countryData.code}`
+
   const svg = d3.select(container)
     .append('svg')
     .attr('viewBox', `0 0 ${width} ${height}`)
@@ -175,14 +176,21 @@ export function renderCountryDailyMedalChart (containerSelector, countryData, op
     .style('width', '100%')
     .style('height', '100%')
     .attr('role', 'img')
-    .attr('aria-label', `Médailles quotidiennes pour ${countryData.label}`)
+    .attr('aria-label', `Graphique en barres empilées des médailles quotidiennes pour ${countryData.label}`)
+    .attr('aria-describedby', descId)
 
-  const defs = svg.append('defs')
-  const filter = defs.append('filter').attr('id', `viz6-glow-${countryData.code}`)
-  filter.append('feGaussianBlur').attr('stdDeviation', '2.5').attr('result', 'coloredBlur')
-  const merge = filter.append('feMerge')
-  merge.append('feMergeNode').attr('in', 'coloredBlur')
-  merge.append('feMergeNode').attr('in', 'SourceGraphic')
+  svg.append('desc')
+    .attr('id', descId)
+    .text(
+      `Graphique en barres empilées verticales pour ${countryData.label}. ` +
+      "L'axe horizontal représente les jours des Jeux olympiques d'hiver de Pékin 2022, " +
+      "et l'axe vertical indique le nombre de médailles (Or, Argent, Bronze) remportées chaque jour. " +
+      `${countryData.label} a gagné au total ${countryData.totals.total} médailles : ` +
+      `${countryData.totals.gold} en or, ${countryData.totals.silver} en argent, ${countryData.totals.bronze} en bronze. ` +
+      'Les journées sans médaille alternent avec des pics sur certaines dates, révélant la concentration des performances sur quelques jours clés. ' +
+      'Cette vue permet de suivre la dynamique quotidienne du pays sélectionné tout au long de la compétition, ' +
+      'et de comprendre dans quels types de disciplines ses succès se sont concentrés.'
+    )
 
   const g = svg.append('g')
     .attr('transform', `translate(${margin.left},${margin.top})`)
@@ -197,14 +205,14 @@ export function renderCountryDailyMedalChart (containerSelector, countryData, op
     )
     .call(axis => axis.select('.domain').remove())
 
-  const dateFormat = d3.timeFormat('%d %b')
+  const tickDayFormat = d3.timeFormat('%-d')
 
   g.append('g')
     .attr('class', 'viz6-axis viz6-axis-x')
     .attr('transform', `translate(0,${innerH})`)
     .call(
       d3.axisBottom(xScale)
-        .tickFormat(dateStr => dateFormat(toDate(dateStr)))
+        .tickFormat(dateStr => `${tickDayFormat(toDate(dateStr))} Févr`)
     )
     .call(axis => axis.select('.domain').remove())
     .selectAll('text')
@@ -278,15 +286,6 @@ export function renderCountryDailyMedalChart (containerSelector, countryData, op
     .attr('tabindex', 0)
     .attr('role', 'button')
     .attr('aria-label', segment => `${countryData.label}, ${segment.day.dateStr}, ${MEDAL_LABELS[segment.key]}: ${segment.day[segment.key]}`)
-    .on('mouseenter focus', function (event, segment) {
-      showTooltip(event, countryData, segment)
-      d3.select(this).attr('filter', `url(#viz6-glow-${countryData.code})`)
-    })
-    .on('mousemove', moveTooltip)
-    .on('mouseleave blur', function () {
-      hideTooltip()
-      d3.select(this).attr('filter', null)
-    })
     .on('click keydown', function (event, segment) {
       if (event.type === 'keydown' && event.key !== 'Enter' && event.key !== ' ') return
       event.preventDefault()
@@ -369,59 +368,4 @@ export function renderCountryDailyMedalChart (containerSelector, countryData, op
       selectedBand.style('display', 'none')
     }
   }
-}
-
-function showTooltip (event, countryData, segment) {
-  const medalCount = segment.day[segment.key]
-  const tt = d3.select('#country-daily-tooltip')
-  if (tt.empty()) return
-
-  const fmtDate = d3.timeFormat('%d %B %Y')
-  const medalRows = MEDAL_KEYS
-    .map(key => `
-      <div class="viz6-tt-row">
-        <span class="viz6-tt-dot" style="background:${MEDAL_COLORS[key]}"></span>
-        <span>${MEDAL_LABELS[key]}</span>
-        <strong>${segment.day[key]}</strong>
-      </div>
-    `)
-    .join('')
-
-  tt.style('display', 'block')
-    .html(`
-      <div class="viz6-tt-header">
-        <img class="viz6-tt-flag" src="${ASSET_BASE}/flags/${countryData.code.toLowerCase()}.svg" alt="${countryData.code}" onerror="this.style.display='none'" />
-        <div>
-          <div class="viz6-tt-country">${countryData.label}</div>
-          <div class="viz6-tt-date">${fmtDate(segment.day.date)}</div>
-        </div>
-      </div>
-      <div class="viz6-tt-selected">
-        ${MEDAL_LABELS[segment.key]} : <strong>${medalCount}</strong>
-      </div>
-      ${medalRows}
-      <div class="viz6-tt-total">Total : <strong>${segment.day.total}</strong></div>
-    `)
-
-  moveTooltip(event)
-}
-
-function moveTooltip (event) {
-  const tt = d3.select('#country-daily-tooltip')
-  const node = tt.node()
-  if (!node) return
-
-  const width = node.offsetWidth || 220
-  const height = node.offsetHeight || 120
-  let left = event.pageX + 14
-  let top = event.pageY - 28
-
-  if (left + width > window.innerWidth - 12) left = event.pageX - width - 14
-  if (top + height > window.innerHeight - 12) top = event.pageY - height - 8
-
-  tt.style('left', `${left}px`).style('top', `${top}px`)
-}
-
-function hideTooltip () {
-  d3.select('#country-daily-tooltip').style('display', 'none')
 }

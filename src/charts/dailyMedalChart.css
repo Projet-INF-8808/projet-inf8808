@@ -9,7 +9,7 @@
 
 .viz5-main-layout {
   display: grid;
-  grid-template-columns: 7fr 4fr;
+  grid-template-columns: 5fr 4fr;
   grid-template-rows: 1fr;
   gap: 24px;
   align-items: stretch;
@@ -71,8 +71,13 @@
 
 .mode-tab.is-active {
   background: var(--bg, #fff);
-  color: var(--accent, #aa3bff);
+  color: #4b1d8f;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.mode-tab:focus-visible {
+  outline: 2px solid #0d6efd;
+  outline-offset: 2px;
 }
 
 .mode-tab:not(.is-active):hover {
@@ -119,6 +124,13 @@
 }
 .dm-dot:hover {
   r: 6px;
+}
+
+.dm-dot:focus-visible {
+  r: 6px;
+  stroke: #0d6efd;
+  stroke-width: 3px;
+  filter: drop-shadow(0 0 3px rgba(13, 110, 253, 0.45));
 }
 
 .dm-cursor-line {
@@ -490,6 +502,11 @@
 .time-nav-btn:hover:not(:disabled) {
   background: var(--accent-bg, rgba(170,59,255,0.08));
   box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+}
+
+.time-nav-btn:focus-visible {
+  outline: 2px solid #0d6efd;
+  outline-offset: 2px;
 }
 .time-nav-btn:disabled {
   opacity: 0.3;
