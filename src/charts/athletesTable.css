@@ -40,27 +40,6 @@
   z-index: 5;
 }
 
-.athletes-table thead th.is-sortable {
-  cursor: pointer;
-  user-select: none;
-}
-
-.athletes-table thead th.is-sortable::after {
-  content: '  <>'; 
-  font-size: 11px;
-  opacity: 0.45;
-}
-
-.athletes-table thead th.is-sorted-asc::after {
-  content: '  ^';
-  opacity: 1;
-}
-
-.athletes-table thead th.is-sorted-desc::after {
-  content: '  v';
-  opacity: 1;
-}
-
 .athletes-table tbody tr:nth-child(odd) {
   background: #ffffff;
 }
