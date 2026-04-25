@@ -101,7 +101,6 @@ document.querySelector('#app').innerHTML = `
   <!-- tooltips (fixed-position, can live anywhere) -->
   <div id="medal-tooltip"   role="tooltip"></div>
   <div id="daily-tooltip"   role="tooltip"></div>
-  <div id="country-daily-tooltip" role="tooltip"></div>
 
   <!-- Big main area -->
   <section id="section-viz5" class="page-section" aria-label="Évolution journalière des événements médaillés">
