@@ -253,7 +253,7 @@ export function renderCountryDailyMedalChart (containerSelector, countryData, op
     const x = xScale(dateStr)
     if (!day || x == null) return
 
-    const height = day.total > 0 ? innerH - yScale(day.total) : 4
+    const height = day.total > 0 ? innerH - yScale(day.total) : 8
     const y = day.total > 0 ? yScale(day.total) : innerH - height
 
     selectedBand

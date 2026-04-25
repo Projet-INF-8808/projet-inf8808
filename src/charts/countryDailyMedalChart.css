@@ -93,13 +93,15 @@
 .viz6-selected-band {
   fill: rgba(229, 57, 53, 0.12);
   stroke: #E53935;
-  stroke-width: 2;
+  stroke-width: 4;
   pointer-events: none;
+  border-radius: 8px;
 }
 
 .viz6-segment {
   cursor: pointer;
   transition: opacity 0.18s ease;
+  outline: none;
 }
 
 .viz6-segment:hover,
@@ -112,6 +114,7 @@
 .viz6-zero-day-target {
   fill: transparent;
   cursor: pointer;
+  outline: none;
 }
 
 .viz6-zero-day-target:focus-visible {

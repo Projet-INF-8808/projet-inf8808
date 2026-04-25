@@ -452,7 +452,7 @@ function renderCountryDailyCountry (countryData, selectedDateStr) {
   showBarMode(countryData)
 
   const selectedDay =
-    countryData.daily.find(day => day.dateStr === selectedDateStr && day.total > 0) ||
+    countryData.daily.find(day => day.dateStr === selectedDateStr) ||
     countryData.daily.find(day => day.total > 0) ||
     countryData.daily[0]
 
@@ -462,7 +462,6 @@ function renderCountryDailyCountry (countryData, selectedDateStr) {
     {
       selectedDateStr: selectedDay?.dateStr,
       onDateSelect: dayData => {
-        renderCountryDailyDetail(countryData, dayData)
         syncSelectedDate(dayData.dateStr, 'viz6')
         const i = countryData.daily.findIndex(d => d.dateStr === dayData.dateStr)
         if (i >= 0) {
